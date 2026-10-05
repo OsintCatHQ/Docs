@@ -1,15 +1,15 @@
 ---
-title: 'DNS Resolver'
-api: 'GET https://www.osintcat.net/api/dns-resolver'
-description: 'Resolve hostnames to IP addresses'
+title: 'Chilean Vehicle Search'
+api: 'GET https://www.osintcat.net/api/chilean-car'
+description: 'Find a vehicle in Chilean records by plate'
 ---
 
-Resolves one or more hostnames to their IP addresses.
+Searches Chilean vehicle records by licence plate.
 
 ## Parameters
 
 <ParamField query="query" type="string" required>
-  A hostname, or several separated by commas.
+  The licence plate.
 </ParamField>
 
 ## Headers
@@ -20,21 +20,21 @@ Resolves one or more hostnames to their IP addresses.
 
 ## Usage
 
-Counts as one lookup against your plan's daily allowance (Max: unlimited). When the allowance is used up, the lookup can continue at a per-lookup price charged to your balance (the module's page in the dashboard shows the price); a lookup that finds nothing is not charged.
+Counts as one lookup against your plan's daily allowance (Max: unlimited). When the allowance is used up, requests are refused with `429 LIMIT_REACHED` until it resets at 00:00 UTC.
 
 ## Example request
 
 <RequestExample>
 ```bash cURL
-curl "https://www.osintcat.net/api/dns-resolver?query=example.com%2Cosintcat.net" \
+curl "https://www.osintcat.net/api/chilean-car?query=ABCD12" \
      -H "X-API-KEY: YOUR_API_KEY"
 ```
 
 ```python Python
 import requests
 
-url = "https://www.osintcat.net/api/dns-resolver"
-params = {"query": "example.com,osintcat.net"}
+url = "https://www.osintcat.net/api/chilean-car"
+params = {"query": "ABCD12"}
 headers = {"X-API-KEY": "YOUR_API_KEY"}
 
 response = requests.get(url, params=params, headers=headers, timeout=60)
@@ -42,7 +42,7 @@ print(response.status_code, response.json())
 ```
 
 ```javascript Node.js
-const response = await fetch("https://www.osintcat.net/api/dns-resolver?query=example.com%2Cosintcat.net", {
+const response = await fetch("https://www.osintcat.net/api/chilean-car?query=ABCD12", {
   headers: { "X-API-KEY": "YOUR_API_KEY" },
 });
 console.log(response.status, await response.json());
@@ -50,7 +50,7 @@ console.log(response.status, await response.json());
 
 ```php PHP
 <?php
-$curl = curl_init("https://www.osintcat.net/api/dns-resolver?query=example.com%2Cosintcat.net");
+$curl = curl_init("https://www.osintcat.net/api/chilean-car?query=ABCD12");
 curl_setopt_array($curl, [
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_HTTPHEADER => ["X-API-KEY: YOUR_API_KEY"],
@@ -71,7 +71,7 @@ import (
 )
 
 func main() {
-    req, _ := http.NewRequest("GET", "https://www.osintcat.net/api/dns-resolver?query=example.com%2Cosintcat.net", nil)
+    req, _ := http.NewRequest("GET", "https://www.osintcat.net/api/chilean-car?query=ABCD12", nil)
     req.Header.Set("X-API-KEY", "YOUR_API_KEY")
     resp, err := http.DefaultClient.Do(req)
     if err != nil {
@@ -86,16 +86,7 @@ func main() {
 
 ## Response
 
-An object mapping each hostname to its IP address (`null` when it does not resolve).
-
-<ResponseExample>
-```json 200
-{
-  "example.com": "93.184.215.14",
-  "osintcat.net": "104.21.32.1"
-}
-```
-</ResponseExample>
+The vehicle and its registered owner details as available. An empty object when nothing was found. Results are cached for an hour.
 
 ## Errors
 

@@ -1,47 +1,26 @@
 ---
-title: 'User Info'
+title: 'Account'
 api: 'GET https://www.osintcat.net/api/user'
+description: 'Your plan, its daily allowance and what is left of it today'
 ---
 
-Retrieve information and usage statistics about your own account, including email OSINT credit information.
+Returns the account the API key belongs to: plan, plan expiry, and how many lookups are left today.
 
 ## Headers
 
 <ParamField header="X-API-KEY" type="string" required>
-  Your API key
+  Your API key.
 </ParamField>
 
-## Response
+## Usage
 
-Returns account information including username, email, plan, usage statistics, and email OSINT credit information.
+Does not count as a lookup.
 
-<ResponseField name="account_info" type="object">
-  Account information object
-  <ResponseField name="username" type="string">Your username</ResponseField>
-  <ResponseField name="email" type="string">Your email address</ResponseField>
-  <ResponseField name="plan" type="string">Your current plan (Free, Starter, Researcher, Investigator, or Enterprise)</ResponseField>
-</ResponseField>
+Needs the `account:read` scope (keys with all scopes have it).
 
-<ResponseField name="usage" type="object">
-  Usage statistics object
-  <ResponseField name="request_limit_daily" type="number">Daily request limit</ResponseField>
-  <ResponseField name="requests_remaining_today" type="number">Remaining requests today</ResponseField>
-  <ResponseField name="api_access" type="boolean">Whether API access is enabled</ResponseField>
-  <ResponseField name="intelx_access" type="boolean">Whether IntelX access is enabled</ResponseField>
-  <ResponseField name="max_ips" type="number">Maximum number of IP addresses allowed</ResponseField>
-</ResponseField>
+## Example request
 
-<ResponseField name="email_osint_credits" type="object">
-  Email OSINT credit information
-  <ResponseField name="current_balance" type="number">Current credit balance in EUR (2 decimal places)</ResponseField>
-  <ResponseField name="price_per_search" type="number">Cost per search based on your plan in EUR (2 decimal places)</ResponseField>
-  <ResponseField name="has_sufficient_credits" type="boolean">Whether you have enough credits for at least one search</ResponseField>
-  <ResponseField name="searches_available" type="number">Estimated number of searches available with current balance (integer)</ResponseField>
-</ResponseField>
-
-## Example Request
-
-<CodeGroup>
+<RequestExample>
 ```bash cURL
 curl "https://www.osintcat.net/api/user" \
      -H "X-API-KEY: YOUR_API_KEY"
@@ -53,201 +32,111 @@ import requests
 url = "https://www.osintcat.net/api/user"
 headers = {"X-API-KEY": "YOUR_API_KEY"}
 
-response = requests.get(url, headers=headers)
-
-if response.ok:
-    print(response.json())
-else:
-    print(f"Error: {response.status_code}")
+response = requests.get(url, headers=headers, timeout=60)
+print(response.status_code, response.json())
 ```
 
 ```javascript Node.js
-const url = 'https://www.osintcat.net/api/user';
-
-fetch(url, {
-    headers: {
-        'X-API-KEY': 'YOUR_API_KEY'
-    }
-})
-    .then(res => res.json())
-    .then(json => console.log(json))
-    .catch(err => console.error('error:' + err));
+const response = await fetch("https://www.osintcat.net/api/user", {
+  headers: { "X-API-KEY": "YOUR_API_KEY" },
+});
+console.log(response.status, await response.json());
 ```
 
 ```php PHP
 <?php
-
-$curl = curl_init();
-
-$url = "https://www.osintcat.net/api/user";
-
+$curl = curl_init("https://www.osintcat.net/api/user");
 curl_setopt_array($curl, [
-    CURLOPT_URL => $url,
     CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_HTTPHEADER => [
-        "X-API-KEY: YOUR_API_KEY"
-    ],
+    CURLOPT_HTTPHEADER => ["X-API-KEY: YOUR_API_KEY"],
 ]);
-
 $response = curl_exec($curl);
-$err = curl_error($curl);
-
+$status = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
 curl_close($curl);
-
-if ($err) {
-    echo "cURL Error #:" . $err;
-} else {
-    echo $response;
-}
+echo $status . " " . $response;
 ```
 
 ```go Go
 package main
 
 import (
-    "encoding/json"
     "fmt"
     "io"
     "net/http"
 )
 
 func main() {
-    fullURL := "https://www.osintcat.net/api/user"
-    
-    req, _ := http.NewRequest("GET", fullURL, nil)
+    req, _ := http.NewRequest("GET", "https://www.osintcat.net/api/user", nil)
     req.Header.Set("X-API-KEY", "YOUR_API_KEY")
-    
-    client := &http.Client{}
-    resp, err := client.Do(req)
+    resp, err := http.DefaultClient.Do(req)
     if err != nil {
-        fmt.Printf("Error: %v\n", err)
-        return
+        panic(err)
     }
     defer resp.Body.Close()
-    
     body, _ := io.ReadAll(resp.Body)
-    var result map[string]interface{}
-    json.Unmarshal(body, &result)
-    fmt.Printf("%+v\n", result)
+    fmt.Println(resp.StatusCode, string(body))
 }
 ```
+</RequestExample>
 
-```ruby Ruby
-require 'net/http'
-require 'json'
-require 'uri'
+## Response
 
-uri = URI('https://www.osintcat.net/api/user')
+<ResponseField name="account_info" type="object">
+  The account.
+  <Expandable title="properties">
+    <ResponseField name="username" type="string">
+      Username.
+    </ResponseField>
+    <ResponseField name="email" type="string">
+      E-mail address of the account.
+    </ResponseField>
+    <ResponseField name="plan" type="string">
+      Current plan, e.g. `Researcher`, `Investigator`, `Max`.
+    </ResponseField>
+    <ResponseField name="plan_expires" type="string">
+      When the plan ends (ISO 8601), `Lifetime`, or `N/A`.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+<ResponseField name="usage" type="object">
+  Today's allowance.
+  <Expandable title="properties">
+    <ResponseField name="request_limit_daily" type="number">
+      Lookups per day on this plan (Max: unlimited, shown as a very large number).
+    </ResponseField>
+    <ResponseField name="requests_remaining_today" type="number">
+      Lookups left today. Resets at 00:00 UTC.
+    </ResponseField>
+    <ResponseField name="api_access" type="boolean">
+      Whether the plan includes API access.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
 
-request = Net::HTTP::Get.new(uri)
-request['X-API-KEY'] = 'YOUR_API_KEY'
-
-response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
-    http.request(request)
-end
-
-if response.is_a?(Net::HTTPSuccess)
-    data = JSON.parse(response.body)
-    puts JSON.pretty_generate(data)
-else
-    puts "Error: #{response.code}"
-end
-```
-
-```java Java
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-
-public class OsintCatAPI {
-    public static void main(String[] args) {
-        try {
-            String apiUrl = "https://www.osintcat.net/api/user";
-            URL url = new URL(apiUrl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("X-API-KEY", "YOUR_API_KEY");
-            
-            int responseCode = conn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
-                System.out.println(response.toString());
-            } else {
-                System.out.println("Error: " + responseCode);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-}
-```
-
-```csharp C#
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-
-class Program
-{
-    static async Task Main(string[] args)
-    {
-        using (var client = new HttpClient())
-        {
-            try
-            {
-                string url = "https://www.osintcat.net/api/user";
-                client.DefaultRequestHeaders.Add("X-API-KEY", "YOUR_API_KEY");
-                
-                var response = await client.GetAsync(url);
-                
-                if (response.IsSuccessStatusCode)
-                {
-                    string content = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine(content);
-                }
-                else
-                {
-                    Console.WriteLine($"Error: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex.Message}");
-            }
-        }
-    }
-}
-```
-</CodeGroup>
-
-## Example Response
-
-```json
+<ResponseExample>
+```json 200
 {
   "account_info": {
-    "username": "user123",
-    "email": "user@example.com",
-    "plan": "Starter"
+    "username": "analyst",
+    "email": "analyst@example.com",
+    "plan": "Investigator",
+    "plan_expires": "2026-11-05T09:12:44"
   },
   "usage": {
-    "request_limit_daily": 100,
-    "requests_remaining_today": 85,
-    "api_access": true,
-    "intelx_access": false,
-    "max_ips": 3
-  },
-  "email_osint_credits": {
-    "current_balance": 10.50,
-    "price_per_search": 0.40,
-    "has_sufficient_credits": true,
-    "searches_available": 26
+    "request_limit_daily": 750,
+    "requests_remaining_today": 742,
+    "api_access": true
   }
 }
 ```
+</ResponseExample>
+
+## Errors
+
+| Status | Error | When |
+| --- | --- | --- |
+| 401 | `API key required` | No `X-API-KEY` header. |
+| 403 | `Invalid API key` | The key does not exist or was revoked. |
+| 403 | `insufficient_scope` | The key lacks the `account:read` scope. |
+
+See [Errors](/api-reference/introduction#errors) for the responses every endpoint can return.

@@ -1,38 +1,36 @@
 ---
 title: 'Breach Lookup'
 api: 'GET https://www.osintcat.net/api/breach'
+description: 'Search breach and leak indexes for an e-mail, username, phone, IP or password'
 ---
 
-Search for records in data breaches and compilations. This endpoint searches across multiple breach databases to find information associated with your query.
+Searches the breach indexes (including Snusbase, LeakCheck and IntelX) for a value and returns every matching record. The search is case-insensitive.
+
+<Note>
+  Results for the same query may come from a cache for up to two days.
+</Note>
 
 ## Parameters
 
 <ParamField query="query" type="string" required>
-  The search term (e.g., email, username)
+  What to search for: an e-mail address, username, domain, phone number, IP address, name or password.
 </ParamField>
 
 ## Headers
 
 <ParamField header="X-API-KEY" type="string" required>
-  Your API key
+  Your API key.
 </ParamField>
 
-## Response
+## Usage
 
-Returns breach data found across multiple sources.
+Counts as one lookup against your plan's daily allowance (Max: unlimited). When the allowance is used up, the lookup can continue at a per-lookup price charged to your balance (the module's page in the dashboard shows the price); a lookup that finds nothing is not charged.
 
-<ResponseField name="api" type="string">API identifier</ResponseField>
-<ResponseField name="elapsed_ms" type="number">Request processing time in milliseconds</ResponseField>
-<ResponseField name="timestamp" type="string">Formatted timestamp of the request</ResponseField>
-<ResponseField name="results_count" type="number">Number of breach records found</ResponseField>
-<ResponseField name="breach_data" type="array">Array of breach records</ResponseField>
-<ResponseField name="_meta" type="object">Metadata about the request</ResponseField>
+## Example request
 
-## Example Request
-
-<CodeGroup>
+<RequestExample>
 ```bash cURL
-curl "https://www.osintcat.net/api/breach?query=user@example.com" \
+curl "https://www.osintcat.net/api/breach?query=user%40example.com" \
      -H "X-API-KEY: YOUR_API_KEY"
 ```
 
@@ -43,204 +41,105 @@ url = "https://www.osintcat.net/api/breach"
 params = {"query": "user@example.com"}
 headers = {"X-API-KEY": "YOUR_API_KEY"}
 
-response = requests.get(url, params=params, headers=headers)
-
-if response.ok:
-    print(response.json())
-else:
-    print(f"Error: {response.status_code}")
+response = requests.get(url, params=params, headers=headers, timeout=60)
+print(response.status_code, response.json())
 ```
 
 ```javascript Node.js
-const url = 'https://www.osintcat.net/api/breach?query=user@example.com';
-
-fetch(url, {
-    headers: {
-        'X-API-KEY': 'YOUR_API_KEY'
-    }
-})
-    .then(res => res.json())
-    .then(json => console.log(json))
-    .catch(err => console.error('error:' + err));
+const response = await fetch("https://www.osintcat.net/api/breach?query=user%40example.com", {
+  headers: { "X-API-KEY": "YOUR_API_KEY" },
+});
+console.log(response.status, await response.json());
 ```
 
 ```php PHP
 <?php
-
-$curl = curl_init();
-
-$url = "https://www.osintcat.net/api/breach?query=user@example.com";
-
+$curl = curl_init("https://www.osintcat.net/api/breach?query=user%40example.com");
 curl_setopt_array($curl, [
-    CURLOPT_URL => $url,
     CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_HTTPHEADER => [
-        "X-API-KEY: YOUR_API_KEY"
-    ],
+    CURLOPT_HTTPHEADER => ["X-API-KEY: YOUR_API_KEY"],
 ]);
-
 $response = curl_exec($curl);
-$err = curl_error($curl);
-
+$status = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
 curl_close($curl);
-
-if ($err) {
-    echo "cURL Error #:" . $err;
-} else {
-    echo $response;
-}
+echo $status . " " . $response;
 ```
 
 ```go Go
 package main
 
 import (
-    "encoding/json"
     "fmt"
     "io"
     "net/http"
-    "net/url"
 )
 
 func main() {
-    baseURL := "https://www.osintcat.net/api/breach"
-    params := url.Values{}
-    params.Add("query", "user@example.com")
-    
-    fullURL := baseURL + "?" + params.Encode()
-    
-    req, _ := http.NewRequest("GET", fullURL, nil)
+    req, _ := http.NewRequest("GET", "https://www.osintcat.net/api/breach?query=user%40example.com", nil)
     req.Header.Set("X-API-KEY", "YOUR_API_KEY")
-    
-    client := &http.Client{}
-    resp, err := client.Do(req)
+    resp, err := http.DefaultClient.Do(req)
     if err != nil {
-        fmt.Printf("Error: %v\n", err)
-        return
+        panic(err)
     }
     defer resp.Body.Close()
-    
     body, _ := io.ReadAll(resp.Body)
-    var result map[string]interface{}
-    json.Unmarshal(body, &result)
-    fmt.Printf("%+v\n", result)
+    fmt.Println(resp.StatusCode, string(body))
 }
 ```
+</RequestExample>
 
-```ruby Ruby
-require 'net/http'
-require 'json'
-require 'uri'
+## Response
 
-uri = URI('https://www.osintcat.net/api/breach')
-uri.query = URI.encode_www_form({ query: 'user@example.com' })
+<ResponseField name="api" type="string">
+  Always `OsintCat`.
+</ResponseField>
+<ResponseField name="elapsed_ms" type="number">
+  Time the search took, in milliseconds.
+</ResponseField>
+<ResponseField name="timestamp" type="string">
+  When the search ran (UTC), e.g. `Oct 6th 09:41`.
+</ResponseField>
+<ResponseField name="results_count" type="number">
+  Number of records in `breach_data`.
+</ResponseField>
+<ResponseField name="breach_data" type="array">
+  Matching records. The fields of a record depend on the breach it comes from (for example `email`, `username`, `password`, `hash`, `ip`, `name`, `phone`); `source_db` names the breach or index the record was found in.
+</ResponseField>
+<ResponseField name="_meta" type="object">
+  Your usage after this request.
+  <Expandable title="properties">
+    <ResponseField name="plan" type="string">
+      Plan id.
+    </ResponseField>
+    <ResponseField name="lookups_left" type="number | string">
+      Lookups left today, `unlimited` on Max, or `charging` when the allowance is used up and the lookup was charged to your balance.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
 
-request = Net::HTTP::Get.new(uri)
-request['X-API-KEY'] = 'YOUR_API_KEY'
-
-response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
-    http.request(request)
-end
-
-if response.is_a?(Net::HTTPSuccess)
-    data = JSON.parse(response.body)
-    puts JSON.pretty_generate(data)
-else
-    puts "Error: #{response.code}"
-end
-```
-
-```java Java
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-
-public class OsintCatAPI {
-    public static void main(String[] args) {
-        try {
-            String apiUrl = "https://www.osintcat.net/api/breach?query=user@example.com";
-            URL url = new URL(apiUrl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("X-API-KEY", "YOUR_API_KEY");
-            
-            int responseCode = conn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
-                System.out.println(response.toString());
-            } else {
-                System.out.println("Error: " + responseCode);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-}
-```
-
-```csharp C#
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-
-class Program
-{
-    static async Task Main(string[] args)
-    {
-        using (var client = new HttpClient())
-        {
-            try
-            {
-                string url = "https://www.osintcat.net/api/breach?query=user@example.com";
-                client.DefaultRequestHeaders.Add("X-API-KEY", "YOUR_API_KEY");
-                
-                var response = await client.GetAsync(url);
-                
-                if (response.IsSuccessStatusCode)
-                {
-                    string content = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine(content);
-                }
-                else
-                {
-                    Console.WriteLine($"Error: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex.Message}");
-            }
-        }
-    }
-}
-```
-</CodeGroup>
-
-## Example Response
-
-```json
+<ResponseExample>
+```json 200
 {
   "api": "OsintCat",
-  "elapsed_ms": 1234.56,
-  "timestamp": "Jan 20th 14:30",
-  "results_count": 5,
+  "elapsed_ms": 1843.27,
+  "timestamp": "Oct 6th 09:41",
+  "results_count": 1,
   "breach_data": [
     {
-      "source": "leakcheck",
       "email": "user@example.com",
-      "password": "hashed_password",
-      "breach_date": "2020-01-15"
+      "username": "user123",
+      "password": "hunter2",
+      "source_db": "EXAMPLE_COM_2019"
     }
   ],
   "_meta": {
-    "requests_remaining": 38
+    "plan": "investigator",
+    "lookups_left": 741
   }
 }
 ```
+</ResponseExample>
+
+## Errors
+
+See [Errors](/api-reference/introduction#errors) for the responses every endpoint can return.

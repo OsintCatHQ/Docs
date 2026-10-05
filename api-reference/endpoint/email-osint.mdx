@@ -1,344 +1,149 @@
 ---
 title: 'Email OSINT'
 api: 'GET https://www.osintcat.net/api/email-osint'
+description: 'Where an e-mail address is registered, and in which breaches it appears'
 ---
 
-Discover which websites an email address is registered on.
+Checks which websites and services an e-mail address is registered with and in which breaches it appears. Every request must state its purpose.
 
 <Warning>
-**Purpose Identification Required**: This endpoint requires you to specify the purpose/reason for your OSINT search. You can provide this in 4 different ways (in order of priority):
-1. **Query Parameter**: `?purpose=Your%20Purpose`
-2. **X-Purpose Header**: `X-Purpose: Your Purpose`
-3. **Purpose Header**: `Purpose: Your Purpose`
-4. **User-Agent Header**: Include `Purpose: Your Purpose` within the User-Agent string
-</Warning>
-
-<Warning>
-**Credits Required**: This endpoint requires email OSINT credits to perform searches. Credits are deducted only after a successful search. Check your credit balance using the `/api/user` endpoint, which includes email OSINT credit information in its response.
+  A request without a purpose (parameter `purpose`, header `X-Purpose`, or `Purpose: ...` at the end of your User-Agent) is refused with `400 USER_AGENT_IDENTITY_REQUIRED`.
 </Warning>
 
 ## Parameters
 
 <ParamField query="query" type="string" required>
-  Email address to investigate
+  The e-mail address (`email` is accepted as well).
 </ParamField>
 
 <ParamField query="purpose" type="string">
-  Purpose/reason for the OSINT search (can also be provided via headers)
+  Why you run the lookup, e.g. `fraud prevention`. Required unless sent as a header (below).
 </ParamField>
 
 ## Headers
 
 <ParamField header="X-API-KEY" type="string" required>
-  Your API key
+  Your API key.
 </ParamField>
 
 <ParamField header="X-Purpose" type="string">
-  Alternative way to provide the purpose (takes priority over query parameter)
+  The purpose, instead of the `purpose` parameter.
 </ParamField>
 
-<ParamField header="Purpose" type="string">
-  Alternative way to provide the purpose
-</ParamField>
+## Usage
 
-<ParamField header="User-Agent" type="string">
-  Can include `Purpose: Your Purpose` within the User-Agent string
-</ParamField>
+Does not use your daily allowance. Each lookup that finds something is charged to your balance (the module's page in the dashboard shows the price); a lookup that finds nothing, or fails, is not charged.
 
-## Credit System
+## Example request
 
-Email OSINT searches require credits to be performed. The cost per search varies by your subscription plan:
-
-| Plan | Price per Search | Monthly Free Credits |
-|------|-----------------|---------------------|
-| Free | €0.50 | 5 searches (€2.50) |
-| Starter | €0.40 | 10 searches (€4.00) |
-| Researcher | €0.30 | 20 searches (€6.00) |
-| Investigator | €0.20 | 30 searches (€6.00) |
-| Enterprise | €0.15 | 50 searches (€7.50) |
-
-<Note>
-**Monthly Credits**: Free credits are automatically awarded on the first of each month based on your plan. Free credits are not stackable - unused credits from previous months do not accumulate.
-</Note>
-
-<Note>
-**Credit Deduction**: Credits are deducted only after a successful API response. Failed requests (due to invalid parameters, rate limits, etc.) do not consume credits.
-</Note>
-
-## Check Credit Balance
-
-Before making a search request, you can check your current credit balance using the `/api/user` endpoint, which includes email OSINT credit information:
-
-**Endpoint**: `GET /api/user`
-
-<CodeGroup>
+<RequestExample>
 ```bash cURL
-curl "https://www.osintcat.net/api/user" \
+curl "https://www.osintcat.net/api/email-osint?query=user%40example.com&purpose=fraud+prevention" \
      -H "X-API-KEY: YOUR_API_KEY"
 ```
 
 ```python Python
 import requests
 
-url = "https://www.osintcat.net/api/user"
-headers = {
-    "X-API-KEY": "YOUR_API_KEY"
-}
-
-response = requests.get(url, headers=headers)
-
-if response.ok:
-    data = response.json()
-    credits = data.get('email_osint_credits', {})
-    print(f"Current credits: €{credits.get('current_balance', 0)}")
-    print(f"Price per search: €{credits.get('price_per_search', 0)}")
-    print(f"Searches available: {credits.get('searches_available', 0)}")
-else:
-    print(f"Error: {response.status_code}")
-```
-</CodeGroup>
-
-The `email_osint_credits` object in the response contains:
-- `current_balance`: Current credit balance in EUR
-- `price_per_search`: Cost per search based on your plan
-- `has_sufficient_credits`: Whether you have enough credits for at least one search
-- `searches_available`: Estimated number of searches available with current balance
-
-See the [User Info](/api-reference/endpoint/user) endpoint documentation for the complete response structure.
-
-## Response
-
-Returns information about websites where the email address is registered. Credits are deducted after a successful response.
-
-## Example Request
-
-<CodeGroup>
-```bash cURL
-# Using header for API Key and X-Purpose for reason
-curl "https://www.osintcat.net/api/email-osint?query=test@example.com" \
-     -H "X-API-KEY: YOUR_API_KEY" \
-     -H "X-Purpose: Security Research"
-```
-
-```python Python
-import requests
-
 url = "https://www.osintcat.net/api/email-osint"
-params = {
-    "query": "test@example.com",
-    "purpose": "Security Research"
-}
-headers = {
-    "X-API-KEY": "YOUR_API_KEY"
-}
+params = {"query": "user@example.com", "purpose": "fraud prevention"}
+headers = {"X-API-KEY": "YOUR_API_KEY"}
 
-response = requests.get(url, params=params, headers=headers)
-
-if response.ok:
-    print(response.json())
-else:
-    print(f"Error: {response.status_code}")
+response = requests.get(url, params=params, headers=headers, timeout=60)
+print(response.status_code, response.json())
 ```
 
 ```javascript Node.js
-const url = 'https://www.osintcat.net/api/email-osint?query=test@example.com&purpose=Security%20Research';
-
-fetch(url, {
-    headers: {
-        'X-API-KEY': 'YOUR_API_KEY'
-    }
-})
-    .then(res => res.json())
-    .then(json => console.log(json))
-    .catch(err => console.error('error:' + err));
+const response = await fetch("https://www.osintcat.net/api/email-osint?query=user%40example.com&purpose=fraud+prevention", {
+  headers: { "X-API-KEY": "YOUR_API_KEY" },
+});
+console.log(response.status, await response.json());
 ```
 
 ```php PHP
 <?php
-
-$curl = curl_init();
-
-$url = "https://www.osintcat.net/api/email-osint?query=test@example.com&purpose=Security%20Research";
-
+$curl = curl_init("https://www.osintcat.net/api/email-osint?query=user%40example.com&purpose=fraud+prevention");
 curl_setopt_array($curl, [
-    CURLOPT_URL => $url,
     CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_HTTPHEADER => [
-        "X-API-KEY: YOUR_API_KEY"
-    ],
+    CURLOPT_HTTPHEADER => ["X-API-KEY: YOUR_API_KEY"],
 ]);
-
 $response = curl_exec($curl);
-$err = curl_error($curl);
-
+$status = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
 curl_close($curl);
-
-if ($err) {
-    echo "cURL Error #:" . $err;
-} else {
-    echo $response;
-}
+echo $status . " " . $response;
 ```
 
 ```go Go
 package main
 
 import (
-    "encoding/json"
     "fmt"
     "io"
     "net/http"
-    "net/url"
 )
 
 func main() {
-    baseURL := "https://www.osintcat.net/api/email-osint"
-    params := url.Values{}
-    params.Add("query", "test@example.com")
-    params.Add("purpose", "Security Research")
-    
-    fullURL := baseURL + "?" + params.Encode()
-    
-    req, _ := http.NewRequest("GET", fullURL, nil)
+    req, _ := http.NewRequest("GET", "https://www.osintcat.net/api/email-osint?query=user%40example.com&purpose=fraud+prevention", nil)
     req.Header.Set("X-API-KEY", "YOUR_API_KEY")
-    
-    client := &http.Client{}
-    resp, err := client.Do(req)
+    resp, err := http.DefaultClient.Do(req)
     if err != nil {
-        fmt.Printf("Error: %v\n", err)
-        return
+        panic(err)
     }
     defer resp.Body.Close()
-    
     body, _ := io.ReadAll(resp.Body)
-    var result map[string]interface{}
-    json.Unmarshal(body, &result)
-    fmt.Printf("%+v\n", result)
+    fmt.Println(resp.StatusCode, string(body))
 }
 ```
+</RequestExample>
 
-```ruby Ruby
-require 'net/http'
-require 'json'
-require 'uri'
+## Response
 
-uri = URI('https://www.osintcat.net/api/email-osint')
-uri.query = URI.encode_www_form({ 
-    query: 'test@example.com', 
-    purpose: 'Security Research' 
-})
+Results for the same address may come from a cache for up to 15 minutes.
 
-request = Net::HTTP::Get.new(uri)
-request['X-API-KEY'] = 'YOUR_API_KEY'
+<ResponseField name="results" type="object">
+  What was found.
+  <Expandable title="properties">
+    <ResponseField name="register" type="array">
+      Services the address is registered with.
+    </ResponseField>
+    <ResponseField name="breach" type="array">
+      Breaches the address appears in.
+    </ResponseField>
+    <ResponseField name="api" type="array">
+      Further findings from service lookups (profile names, pictures, account details).
+    </ResponseField>
+  </Expandable>
+</ResponseField>
 
-response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
-    http.request(request)
-end
-
-if response.is_a?(Net::HTTPSuccess)
-    data = JSON.parse(response.body)
-    puts JSON.pretty_generate(data)
-else
-    puts "Error: #{response.code}"
-end
-```
-
-```java Java
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-
-public class OsintCatAPI {
-    public static void main(String[] args) {
-        try {
-            String apiUrl = "https://www.osintcat.net/api/email-osint?query=test@example.com&purpose=Security%20Research";
-            URL url = new URL(apiUrl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("X-API-KEY", "YOUR_API_KEY");
-            
-            int responseCode = conn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
-                System.out.println(response.toString());
-            } else {
-                System.out.println("Error: " + responseCode);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-}
-```
-
-```csharp C#
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-
-class Program
+<ResponseExample>
+```json 200
 {
-    static async Task Main(string[] args)
-    {
-        using (var client = new HttpClient())
-        {
-            try
-            {
-                string url = "https://www.osintcat.net/api/email-osint?query=test@example.com&purpose=Security%20Research";
-                client.DefaultRequestHeaders.Add("X-API-KEY", "YOUR_API_KEY");
-                
-                var response = await client.GetAsync(url);
-                
-                if (response.IsSuccessStatusCode)
-                {
-                    string content = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine(content);
-                }
-                else
-                {
-                    Console.WriteLine($"Error: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex.Message}");
-            }
-        }
-    }
+  "results": {
+    "register": [
+      {
+        "site": "example-shop.com",
+        "exists": true
+      }
+    ],
+    "breach": [
+      {
+        "name": "Example 2021",
+        "date": "2021-04-02"
+      }
+    ],
+    "api": []
+  }
 }
 ```
-</CodeGroup>
+</ResponseExample>
 
-## Error Responses
+## Errors
 
-### Insufficient Credits (402 Payment Required)
+| Status | Error | When |
+| --- | --- | --- |
+| 400 | `USER_AGENT_IDENTITY_REQUIRED` | No purpose given. |
+| 401 | `API key required` | No `X-API-KEY` header. |
+| 402 | `INSUFFICIENT_BALANCE` | Your balance does not cover the lookup. |
+| 502 | `Provider Error` | The lookup could not be completed. Not charged. |
 
-If you don't have enough credits to perform a search, you'll receive a 402 status code:
-
-```json
-{
-  "error": "INSUFFICIENT_CREDITS",
-  "message": "Insufficient credits. You need 0.50€ but have 0.00€. Please purchase credits.",
-  "credits_needed": 0.50,
-  "credits_available": 0.00
-}
-```
-
-### Rate Limit Exceeded (429 Too Many Requests)
-
-If you exceed the rate limit of 3 requests per second, you'll receive a 429 status code. This does not consume credits.
-
-### Other Status Codes
-
-- `200 OK` - Success (credits are deducted)
-- `400 Bad Request` - Missing or invalid parameters (no credits deducted)
-- `403 Forbidden` - Invalid or missing API key (no credits deducted)
-- `429 Too Many Requests` - Rate limit exceeded (no credits deducted)
-- `500 Internal Server Error` - Server error (no credits deducted)
+See [Errors](/api-reference/introduction#errors) for the responses every endpoint can return.

@@ -1,0 +1,169 @@
+---
+title: 'GitHub Profile'
+api: 'GET https://www.osintcat.net/api/github-lookup'
+description: 'Public GitHub profile by username'
+---
+
+Look up a GitHub account by its username and get the public profile.
+
+## Parameters
+
+<ParamField query="username" type="string" required>
+  The GitHub username.
+</ParamField>
+
+## Headers
+
+<ParamField header="X-API-KEY" type="string" required>
+  Your API key.
+</ParamField>
+
+## Usage
+
+Counts as one lookup against your plan's daily allowance (Max: unlimited). When the allowance is used up, the lookup can continue at a per-lookup price charged to your balance (the module's page in the dashboard shows the price); a lookup that finds nothing is not charged.
+
+## Example request
+
+<RequestExample>
+```bash cURL
+curl "https://www.osintcat.net/api/github-lookup?username=octocat" \
+     -H "X-API-KEY: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+url = "https://www.osintcat.net/api/github-lookup"
+params = {"username": "octocat"}
+headers = {"X-API-KEY": "YOUR_API_KEY"}
+
+response = requests.get(url, params=params, headers=headers, timeout=60)
+print(response.status_code, response.json())
+```
+
+```javascript Node.js
+const response = await fetch("https://www.osintcat.net/api/github-lookup?username=octocat", {
+  headers: { "X-API-KEY": "YOUR_API_KEY" },
+});
+console.log(response.status, await response.json());
+```
+
+```php PHP
+<?php
+$curl = curl_init("https://www.osintcat.net/api/github-lookup?username=octocat");
+curl_setopt_array($curl, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => ["X-API-KEY: YOUR_API_KEY"],
+]);
+$response = curl_exec($curl);
+$status = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+curl_close($curl);
+echo $status . " " . $response;
+```
+
+```go Go
+package main
+
+import (
+    "fmt"
+    "io"
+    "net/http"
+)
+
+func main() {
+    req, _ := http.NewRequest("GET", "https://www.osintcat.net/api/github-lookup?username=octocat", nil)
+    req.Header.Set("X-API-KEY", "YOUR_API_KEY")
+    resp, err := http.DefaultClient.Do(req)
+    if err != nil {
+        panic(err)
+    }
+    defer resp.Body.Close()
+    body, _ := io.ReadAll(resp.Body)
+    fmt.Println(resp.StatusCode, string(body))
+}
+```
+</RequestExample>
+
+## Response
+
+`taken` is `true` when the account exists. `ExtraData` holds what the profile shows publicly; a field the profile does not have is left out. When the lookup could not be completed, `taken` is `false` and `error` says why (for example `rate_limited`, try again later).
+
+<ResponseField name="taken" type="boolean">
+  Whether an account with this username exists.
+</ResponseField>
+<ResponseField name="error" type="string">
+  Present only when the lookup could not be completed.
+</ResponseField>
+<ResponseField name="ExtraData" type="object">
+  Public profile fields.
+  <Expandable title="properties">
+    <ResponseField name="Username" type="string">
+      Login.
+    </ResponseField>
+    <ResponseField name="Name" type="string">
+      Name.
+    </ResponseField>
+    <ResponseField name="Bio" type="string">
+      Bio.
+    </ResponseField>
+    <ResponseField name="Location" type="string">
+      Location.
+    </ResponseField>
+    <ResponseField name="Company" type="string">
+      Company.
+    </ResponseField>
+    <ResponseField name="Blog" type="string">
+      Website.
+    </ResponseField>
+    <ResponseField name="Email" type="string">
+      Public e-mail.
+    </ResponseField>
+    <ResponseField name="Twitter" type="string">
+      X/Twitter handle.
+    </ResponseField>
+    <ResponseField name="Followers" type="number">
+      Followers.
+    </ResponseField>
+    <ResponseField name="Following" type="number">
+      Following.
+    </ResponseField>
+    <ResponseField name="PublicRepos" type="number">
+      Public repositories.
+    </ResponseField>
+    <ResponseField name="CreatedAt" type="string">
+      Account creation.
+    </ResponseField>
+    <ResponseField name="ProfileUrl" type="string">
+      Profile link.
+    </ResponseField>
+    <ResponseField name="Repositories" type="array">
+      The 10 most recently pushed repositories (name, description, url, language, stars, forks).
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json 200
+{
+  "taken": true,
+  "ExtraData": {
+    "Username": "octocat",
+    "Name": "The Octocat",
+    "Location": "San Francisco",
+    "Followers": 21000,
+    "PublicRepos": 8,
+    "CreatedAt": "2011-01-25T18:44:36Z",
+    "ProfileUrl": "https://github.com/octocat",
+    "Repositories": []
+  }
+}
+```
+</ResponseExample>
+
+## Errors
+
+| Status | Error | When |
+| --- | --- | --- |
+| 400 | `Missing username parameter` | No `username` given. |
+
+See [Errors](/api-reference/introduction#errors) for the responses every endpoint can return.

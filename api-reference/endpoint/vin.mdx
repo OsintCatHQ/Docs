@@ -1,177 +1,88 @@
 ---
-title: 'VIN Lookup'
+title: 'VIN Decoder'
 api: 'GET https://www.osintcat.net/api/vin'
+description: 'Decode VINs and look up makes, models and manufacturers'
 ---
 
-Decode Vehicle Identification Numbers (VINs) and query vehicle data from the NHTSA vPIC API. Supports single/batch VIN decode, WMI decode, makes & models, manufacturers, vehicle variables, and Canadian vehicle specifications.
+Decodes vehicle identification numbers and answers catalogue questions (makes, models, manufacturers, vehicle variables). Choose what to do with `type`.
+
+## Parameters
+
+<ParamField query="type" type="string" default="decode">
+  `decode` (default), `batch`, `wmi`, `makes`, `manufacturers`, `variables` or `canadian`.
+</ParamField>
+
+<ParamField query="query" type="string">
+  The VIN (`decode`), VINs separated by new lines, up to 50 (`batch`), a WMI (`wmi`), or the make / manufacturer / variable name the chosen `search_type` needs. Not needed for `makes`+`all`, `manufacturers`+`all`/`parts`, `variables`+`list` and `canadian`.
+</ParamField>
+
+<ParamField query="model_year" type="number">
+  `decode`: model year, improves accuracy.
+</ParamField>
+
+<ParamField query="extended" type="boolean">
+  `decode`: `true` for the extended field set.
+</ParamField>
+
+<ParamField query="search_type" type="string">
+  `makes`: `all`, `manufacturer`, `vehicletype`, `models`, `vehicletypes`. `manufacturers`: `all`, `details`, `wmis`, `parts`. `variables`: `list`, `values`.
+</ParamField>
+
+<ParamField query="year" type="number">
+  `makes` with `manufacturer`/`models`, and `canadian`: model year.
+</ParamField>
+
+<ParamField query="vehicle_type" type="string">
+  `makes`+`models` and `manufacturers`+`wmis`: vehicle type filter.
+</ParamField>
+
+<ParamField query="mfr_type" type="string">
+  `manufacturers`+`all`: manufacturer type filter.
+</ParamField>
+
+<ParamField query="page" type="number">
+  `manufacturers`+`all`/`parts`: page number.
+</ParamField>
+
+<ParamField query="parts_type" type="string">
+  `manufacturers`+`parts`: CFR part, default `565`.
+</ParamField>
+
+<ParamField query="from_date" type="string">
+  `manufacturers`+`parts`: start date (required there).
+</ParamField>
+
+<ParamField query="to_date" type="string">
+  `manufacturers`+`parts`: end date (required there).
+</ParamField>
+
+<ParamField query="make" type="string">
+  `canadian`: make.
+</ParamField>
+
+<ParamField query="model" type="string">
+  `canadian`: model.
+</ParamField>
+
+<ParamField query="units" type="string">
+  `canadian`: `Metric` (default) or `US`.
+</ParamField>
 
 ## Headers
 
 <ParamField header="X-API-KEY" type="string" required>
-  Your API key
+  Your API key.
 </ParamField>
 
-## Parameters
+## Usage
 
-All requests require a `type` parameter. Other parameters depend on the operation. Use the fields below in the Try it panel; the tables describe which apply to each `type`.
+Counts as one lookup against your plan's daily allowance (Max: unlimited). When the allowance is used up, the lookup can continue at a per-lookup price charged to your balance (the module's page in the dashboard shows the price); a lookup that finds nothing is not charged.
 
-<ParamField query="type" type="string" required placeholder="decode | batch | wmi | makes | manufacturers | variables | canadian">
-  Operation type
-</ParamField>
+## Example request
 
-<ParamField query="query" type="string" placeholder="VIN, WMI, or search term (depends on type)">
-  VIN (decode/batch), WMI code (wmi), or search term (makes, manufacturers, variables). Not used for canadian.
-</ParamField>
-
-<ParamField query="model_year" type="number" placeholder="e.g. 2021">
-  Model year 1981+. For type=decode only. Recommended for partial VINs.
-</ParamField>
-
-<ParamField query="extended" type="boolean" default="false">
-  If true, include extended NHTSA variables. For type=decode only.
-</ParamField>
-
-<ParamField query="search_type" type="string" placeholder="all | manufacturer | vehicletype | models | vehicletypes (makes); all | details | wmis | parts (manufacturers); list | values (variables)">
-  Sub-operation. Required for type=makes, manufacturers, variables.
-</ParamField>
-
-<ParamField query="year" type="number" placeholder="e.g. 2023">
-  Model year. For type=makes (manufacturer, models) and type=canadian (required).
-</ParamField>
-
-<ParamField query="vehicle_type" type="string" placeholder="e.g. Passenger Car, Truck">
-  e.g. Passenger Car, Truck. For type=makes (models) and type=manufacturers (wmis).
-</ParamField>
-
-<ParamField query="mfr_type" type="string" placeholder="e.g. Completed Vehicle Manufacturer">
-  Manufacturer type filter. For type=manufacturers, search_type=all.
-</ParamField>
-
-<ParamField query="from_date" type="string" placeholder="YYYY-MM-DD">
-  Start date. Required for type=manufacturers, search_type=parts.
-</ParamField>
-
-<ParamField query="to_date" type="string" placeholder="YYYY-MM-DD">
-  End date. Required for type=manufacturers, search_type=parts.
-</ParamField>
-
-<ParamField query="parts_type" type="string" default="565" placeholder="565 | 566">
-  Parts doc type. For type=manufacturers, search_type=parts. Default: 565.
-</ParamField>
-
-<ParamField query="page" type="number" default="1" placeholder="1">
-  Page number. For type=manufacturers. Default: 1.
-</ParamField>
-
-<ParamField query="make" type="string" placeholder="e.g. Honda, Toyota">
-  Make. Required for type=canadian.
-</ParamField>
-
-<ParamField query="model" type="string" placeholder="e.g. Civic">
-  Model name. For type=canadian.
-</ParamField>
-
-<ParamField query="units" type="string" default="Metric" placeholder="Metric | Imperial">
-  Units for type=canadian. Metric or Imperial (Imperial is sent as US to the API). Default: Metric.
-</ParamField>
-
----
-
-### type: `decode`
-
-Decode a 17-digit VIN or partial VIN (use `*` for missing characters).
-
-| Parameter   | Type   | Required | Description |
-|------------|--------|----------|-------------|
-| query      | string | Yes      | VIN (6–17 chars) or partial VIN |
-| model_year | int    | No       | Model year (1981+). Recommended for pre-1980. |
-| extended   | bool   | No       | `true` for extended NHTSA variables. Default: `false`. |
-
----
-
-### type: `batch`
-
-Decode up to 50 VINs at once. One per line; optional format: `VIN, model_year`.
-
-| Parameter | Type   | Required | Description |
-|-----------|--------|----------|-------------|
-| query     | string | Yes      | VINs, one per line. Max 50. |
-
----
-
-### type: `wmi`
-
-Decode a World Manufacturer Identifier (3 or 6 characters).
-
-| Parameter | Type   | Required | Description |
-|-----------|--------|----------|-------------|
-| query     | string | Yes      | WMI code (e.g. `1FT`, `JHM`) |
-
----
-
-### type: `makes`
-
-Search makes, models, and vehicle types.
-
-| Parameter     | Type   | Required | Description |
-|---------------|--------|----------|-------------|
-| search_type   | string | Yes      | `all`, `manufacturer`, `vehicletype`, `models`, `vehicletypes` |
-| query         | string | No*      | Manufacturer/make/vehicle type (see search_type). *Required except for `all`. |
-| year          | int    | No       | Model year (for `manufacturer`, `models`) |
-| vehicle_type  | string | No       | e.g. `Passenger Car`, `Truck` (for `models`) |
-
----
-
-### type: `manufacturers`
-
-Search manufacturers, WMIs, and parts documentation.
-
-| Parameter   | Type   | Required | Description |
-|-------------|--------|----------|-------------|
-| search_type | string | Yes      | `all`, `details`, `wmis`, `parts` |
-| query       | string | No*      | Manufacturer name or ID. *Required for `details`, `wmis`. |
-| mfr_type    | string | No       | e.g. `Completed Vehicle Manufacturer` (for `all`) |
-| from_date   | string | No*      | `YYYY-MM-DD`. *Required for `parts`. |
-| to_date     | string | No*      | `YYYY-MM-DD`. *Required for `parts`. |
-| parts_type  | string | No       | `565` or `566`. Default: `565`. (for `parts`) |
-| vehicle_type| string | No       | (for `wmis`) |
-| page        | int    | No       | Page number. Default: 1. |
-
----
-
-### type: `variables`
-
-Get the list of vehicle variables or values for a specific variable.
-
-| Parameter   | Type   | Required | Description |
-|-------------|--------|----------|-------------|
-| search_type | string | Yes      | `list` (all variables) or `values` (values for one variable) |
-| query       | string | No*      | Variable name (e.g. `Vehicle Type`, `Make`). *Required for `values`. |
-
----
-
-### type: `canadian`
-
-Get Canadian Vehicle Specifications (1971+). Uses `year` and `make`; `query` is not used.
-
-| Parameter | Type   | Required | Description |
-|-----------|--------|----------|-------------|
-| year      | int    | Yes      | Model year (1971+) |
-| make      | string | Yes      | Make (e.g. `Honda`, `Toyota`) |
-| model     | string | No       | Model name |
-| units     | string | No       | `Metric` or `Imperial` (Imperial is sent as `US` to the API). Default: `Metric`. |
-
----
-
-## Response
-
-Returns JSON. Structure depends on `type` (object for decode/wmi, array for makes/manufacturers/variables/list, etc.).
-
-## Example: Decode VIN
-
-<CodeGroup>
+<RequestExample>
 ```bash cURL
-curl "https://www.osintcat.net/api/vin?type=decode&query=1HGBH41JXMN109186&model_year=2021" \
+curl "https://www.osintcat.net/api/vin?type=decode&query=1HGCM82633A004352" \
      -H "X-API-KEY: YOUR_API_KEY"
 ```
 
@@ -179,103 +90,83 @@ curl "https://www.osintcat.net/api/vin?type=decode&query=1HGBH41JXMN109186&model
 import requests
 
 url = "https://www.osintcat.net/api/vin"
-params = {
-    "type": "decode",
-    "query": "1HGBH41JXMN109186",
-    "model_year": "2021"
-}
+params = {"type": "decode", "query": "1HGCM82633A004352"}
 headers = {"X-API-KEY": "YOUR_API_KEY"}
 
-response = requests.get(url, params=params, headers=headers)
-
-if response.ok:
-    print(response.json())
-else:
-    print(f"Error: {response.status_code} - {response.text}")
+response = requests.get(url, params=params, headers=headers, timeout=60)
+print(response.status_code, response.json())
 ```
 
 ```javascript Node.js
-const params = new URLSearchParams({
-  type: 'decode',
-  query: '1HGBH41JXMN109186',
-  model_year: '2021'
+const response = await fetch("https://www.osintcat.net/api/vin?type=decode&query=1HGCM82633A004352", {
+  headers: { "X-API-KEY": "YOUR_API_KEY" },
 });
-
-fetch(`https://www.osintcat.net/api/vin?${params}`, {
-  headers: { 'X-API-KEY': 'YOUR_API_KEY' }
-})
-  .then(res => res.json())
-  .then(json => console.log(json))
-  .catch(err => console.error('error:', err));
-```
-</CodeGroup>
-
-## Example: WMI Decode
-
-```bash
-curl "https://www.osintcat.net/api/vin?type=wmi&query=1FT" \
-     -H "X-API-KEY: YOUR_API_KEY"
+console.log(response.status, await response.json());
 ```
 
-## Example: Get All Makes
-
-```bash
-curl "https://www.osintcat.net/api/vin?type=makes&search_type=all&query=" \
-     -H "X-API-KEY: YOUR_API_KEY"
+```php PHP
+<?php
+$curl = curl_init("https://www.osintcat.net/api/vin?type=decode&query=1HGCM82633A004352");
+curl_setopt_array($curl, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => ["X-API-KEY: YOUR_API_KEY"],
+]);
+$response = curl_exec($curl);
+$status = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+curl_close($curl);
+echo $status . " " . $response;
 ```
 
-Or with a dummy query (some clients omit empty query):
+```go Go
+package main
 
-```bash
-curl "https://www.osintcat.net/api/vin?type=makes&search_type=all" \
-     -H "X-API-KEY: YOUR_API_KEY"
+import (
+    "fmt"
+    "io"
+    "net/http"
+)
+
+func main() {
+    req, _ := http.NewRequest("GET", "https://www.osintcat.net/api/vin?type=decode&query=1HGCM82633A004352", nil)
+    req.Header.Set("X-API-KEY", "YOUR_API_KEY")
+    resp, err := http.DefaultClient.Do(req)
+    if err != nil {
+        panic(err)
+    }
+    defer resp.Body.Close()
+    body, _ := io.ReadAll(resp.Body)
+    fmt.Println(resp.StatusCode, string(body))
+}
 ```
+</RequestExample>
 
-## Example: Models by Make
+## Response
 
-```bash
-curl "https://www.osintcat.net/api/vin?type=makes&search_type=models&query=Tesla&year=2023" \
-     -H "X-API-KEY: YOUR_API_KEY"
+The decoder's answer for the chosen `type`, typically `{"Count": n, "Message": "...", "Results": [...]}`. Decoded VINs are cached for an hour.
+
+<ResponseExample>
+```json 200
+{
+  "Count": 1,
+  "Message": "Results returned successfully",
+  "Results": [
+    {
+      "Make": "HONDA",
+      "Model": "Accord",
+      "ModelYear": "2003",
+      "VIN": "1HGCM82633A004352"
+    }
+  ]
+}
 ```
+</ResponseExample>
 
-## Example: Variable List
+## Errors
 
-```bash
-curl "https://www.osintcat.net/api/vin?type=variables&search_type=list" \
-     -H "X-API-KEY: YOUR_API_KEY"
-```
+| Status | Error | When |
+| --- | --- | --- |
+| 400 | `query parameter is required` | `query` missing where the chosen type needs it. |
+| 400 | `Maximum 50 VINs allowed` | `batch` with more than 50 VINs. |
+| 400 | `Invalid query type / Invalid search_type` | Unknown `type` or `search_type`. |
 
-## Example: Variable Values
-
-```bash
-curl "https://www.osintcat.net/api/vin?type=variables&search_type=values&query=Vehicle%20Type" \
-     -H "X-API-KEY: YOUR_API_KEY"
-```
-
-## Example: Canadian Vehicle Specifications
-
-```bash
-curl "https://www.osintcat.net/api/vin?type=canadian&year=2022&make=Honda&model=Civic&units=Metric" \
-     -H "X-API-KEY: YOUR_API_KEY"
-```
-
-## Example: Batch Decode
-
-```bash
-# Send VINs as newline-separated in query (URL-encode newlines as %0A)
-curl "https://www.osintcat.net/api/vin?type=batch&query=1HGBH41JXMN109186%0A5YJ3E1EA1KF123456" \
-     -H "X-API-KEY: YOUR_API_KEY"
-```
-
-For batch, `query` can also be sent in the request body as form data or in a POST with a JSON body if your client supports it; the backend reads `query` from `request.args`.
-
-## Error Responses
-
-| Code | Description |
-|------|-------------|
-| 400  | Bad request: missing/invalid `query` (when required), invalid `type` or `search_type`, or validation error (e.g. `from_date`/`to_date` required for `parts`). |
-| 403  | Invalid or missing `X-API-KEY`. |
-| 429  | Rate limit exceeded. |
-| 500  | vPIC or internal error. |
-
-Errors return JSON, e.g. `{"error": "query parameter is required"}`.
+See [Errors](/api-reference/introduction#errors) for the responses every endpoint can return.

@@ -1,31 +1,32 @@
 ---
-title: 'TikTok Resolver'
+title: 'TikTok Share Link'
 api: 'GET https://www.osintcat.net/api/tiktok-resolver'
+description: 'Who shared a TikTok link'
 ---
 
-Resolve a TikTok short link (vm.tiktok.com / vt.tiktok.com) to the user who shared it — including username, nickname, region, follower count, total likes, bio and the share timestamp.
+Resolves a TikTok share link (e.g. `https://vm.tiktok.com/...`) to the account that shared it, with share details and the video.
 
 ## Parameters
 
 <ParamField query="link" type="string" required>
-  A TikTok short link, e.g. `https://vm.tiktok.com/ZGdHhUjhW/`
+  A TikTok share link. `url` or `query` are accepted as well.
 </ParamField>
 
 ## Headers
 
 <ParamField header="X-API-KEY" type="string" required>
-  Your API key
+  Your API key.
 </ParamField>
 
-## Response
+## Usage
 
-Returns the sharer profile pulled from the redirect target, with `success`, `sharer.{username, nickname, region, follower_count, heart_count, user_id, timestamp, bio, avatar}` and `_meta` usage info.
+Counts as one lookup against your plan's daily allowance (Max: unlimited). When the allowance is used up, the lookup can continue at a per-lookup price charged to your balance (the module's page in the dashboard shows the price); a lookup that finds nothing is not charged.
 
-## Example Request
+## Example request
 
-<CodeGroup>
+<RequestExample>
 ```bash cURL
-curl "https://www.osintcat.net/api/tiktok-resolver?link=https%3A%2F%2Fvm.tiktok.com%2FZGdHhUjhW%2F" \
+curl "https://www.osintcat.net/api/tiktok-resolver?link=https%3A%2F%2Fvm.tiktok.com%2FZMexample%2F" \
      -H "X-API-KEY: YOUR_API_KEY"
 ```
 
@@ -33,190 +34,77 @@ curl "https://www.osintcat.net/api/tiktok-resolver?link=https%3A%2F%2Fvm.tiktok.
 import requests
 
 url = "https://www.osintcat.net/api/tiktok-resolver"
-params = {"link": "https://vm.tiktok.com/ZGdHhUjhW/"}
+params = {"link": "https://vm.tiktok.com/ZMexample/"}
 headers = {"X-API-KEY": "YOUR_API_KEY"}
 
-response = requests.get(url, params=params, headers=headers)
-
-if response.ok:
-    print(response.json())
-else:
-    print(f"Error: {response.status_code}")
+response = requests.get(url, params=params, headers=headers, timeout=60)
+print(response.status_code, response.json())
 ```
 
 ```javascript Node.js
-const url = 'https://www.osintcat.net/api/tiktok-resolver?link=' + encodeURIComponent('https://vm.tiktok.com/ZGdHhUjhW/');
-
-fetch(url, {
-    headers: {
-        'X-API-KEY': 'YOUR_API_KEY'
-    }
-})
-    .then(res => res.json())
-    .then(json => console.log(json))
-    .catch(err => console.error('error:' + err));
+const response = await fetch("https://www.osintcat.net/api/tiktok-resolver?link=https%3A%2F%2Fvm.tiktok.com%2FZMexample%2F", {
+  headers: { "X-API-KEY": "YOUR_API_KEY" },
+});
+console.log(response.status, await response.json());
 ```
 
 ```php PHP
 <?php
-
-$curl = curl_init();
-
-$link = urlencode("https://vm.tiktok.com/ZGdHhUjhW/");
-$url = "https://www.osintcat.net/api/tiktok-resolver?link=$link";
-
+$curl = curl_init("https://www.osintcat.net/api/tiktok-resolver?link=https%3A%2F%2Fvm.tiktok.com%2FZMexample%2F");
 curl_setopt_array($curl, [
-    CURLOPT_URL => $url,
     CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_HTTPHEADER => [
-        "X-API-KEY: YOUR_API_KEY"
-    ],
+    CURLOPT_HTTPHEADER => ["X-API-KEY: YOUR_API_KEY"],
 ]);
-
 $response = curl_exec($curl);
-$err = curl_error($curl);
-
+$status = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
 curl_close($curl);
-
-if ($err) {
-    echo "cURL Error #:" . $err;
-} else {
-    echo $response;
-}
+echo $status . " " . $response;
 ```
 
 ```go Go
 package main
 
 import (
-    "encoding/json"
     "fmt"
     "io"
     "net/http"
-    "net/url"
 )
 
 func main() {
-    baseURL := "https://www.osintcat.net/api/tiktok-resolver"
-    params := url.Values{}
-    params.Add("link", "https://vm.tiktok.com/ZGdHhUjhW/")
-
-    fullURL := baseURL + "?" + params.Encode()
-
-    req, _ := http.NewRequest("GET", fullURL, nil)
+    req, _ := http.NewRequest("GET", "https://www.osintcat.net/api/tiktok-resolver?link=https%3A%2F%2Fvm.tiktok.com%2FZMexample%2F", nil)
     req.Header.Set("X-API-KEY", "YOUR_API_KEY")
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
+    resp, err := http.DefaultClient.Do(req)
     if err != nil {
-        fmt.Printf("Error: %v\n", err)
-        return
+        panic(err)
     }
     defer resp.Body.Close()
-
     body, _ := io.ReadAll(resp.Body)
-    var result map[string]interface{}
-    json.Unmarshal(body, &result)
-    fmt.Printf("%+v\n", result)
+    fmt.Println(resp.StatusCode, string(body))
 }
 ```
+</RequestExample>
 
-```ruby Ruby
-require 'net/http'
-require 'json'
-require 'uri'
+## Response
 
-uri = URI('https://www.osintcat.net/api/tiktok-resolver')
-uri.query = URI.encode_www_form({ link: 'https://vm.tiktok.com/ZGdHhUjhW/' })
+<ResponseField name="success" type="boolean">
+  `true` when resolved.
+</ResponseField>
+<ResponseField name="sharer" type="object">
+  The account that shared the link: `username`, `nickname`, `avatar`, `region`, `language`, `account_created`, `follower_count`, `following_count`, `heart_count`, `video_count`, `bio`, `verified`, `private`. `resolved_via` is `sec_uid` for the sharer, or `video_author` when only the video's author could be identified.
+</ResponseField>
+<ResponseField name="share_info" type="object">
+  The share: `shared_from`, `share_time`, `device`, `language`, `region`, `account_created`.
+</ResponseField>
+<ResponseField name="video" type="object">
+  The video: `full_url`, `video_id`, `video_created`, `type`, `author_username`.
+</ResponseField>
 
-request = Net::HTTP::Get.new(uri)
-request['X-API-KEY'] = 'YOUR_API_KEY'
+## Errors
 
-response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
-    http.request(request)
-end
+| Status | Error | When |
+| --- | --- | --- |
+| 400 | `Provide a valid TikTok short link via ?link=...` | No link, or not a TikTok link. |
+| 404 | `No user found for this link` | The link carries no sharer. |
+| 502 | `Could not resolve link` | The link could not be resolved right now. |
 
-if response.is_a?(Net::HTTPSuccess)
-    data = JSON.parse(response.body)
-    puts JSON.pretty_generate(data)
-else
-    puts "Error: #{response.code}"
-end
-```
-
-```java Java
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-
-public class OsintCatAPI {
-    public static void main(String[] args) {
-        try {
-            String link = URLEncoder.encode("https://vm.tiktok.com/ZGdHhUjhW/", "UTF-8");
-            String apiUrl = "https://www.osintcat.net/api/tiktok-resolver?link=" + link;
-            URL url = new URL(apiUrl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("X-API-KEY", "YOUR_API_KEY");
-
-            int responseCode = conn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
-                System.out.println(response.toString());
-            } else {
-                System.out.println("Error: " + responseCode);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-}
-```
-
-```csharp C#
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.Web;
-
-class Program
-{
-    static async Task Main(string[] args)
-    {
-        using (var client = new HttpClient())
-        {
-            try
-            {
-                string link = HttpUtility.UrlEncode("https://vm.tiktok.com/ZGdHhUjhW/");
-                string url = $"https://www.osintcat.net/api/tiktok-resolver?link={link}";
-                client.DefaultRequestHeaders.Add("X-API-KEY", "YOUR_API_KEY");
-
-                var response = await client.GetAsync(url);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    string content = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine(content);
-                }
-                else
-                {
-                    Console.WriteLine($"Error: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex.Message}");
-            }
-        }
-    }
-}
-```
-</CodeGroup>
+See [Errors](/api-reference/introduction#errors) for the responses every endpoint can return.

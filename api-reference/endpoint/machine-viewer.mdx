@@ -9,7 +9,7 @@ Search machines by name, retrieve device details, browse file trees, and downloa
 
 <Note>
   All Machine Viewer API endpoints use `X-API-KEY` header authentication.
-  Searching machines costs **1 credit** per search.
+  Every Machine Viewer request counts as one lookup against your plan's daily allowance (Max: unlimited). When the allowance is used up, requests can continue at a per-lookup price charged to your balance (the module's page in the dashboard shows the price); a search that finds nothing is not charged. Machine and file IDs are UUIDs.
 </Note>
 
 ---
@@ -65,7 +65,7 @@ fetch('https://www.osintcat.net/api/machine_viewer/stats', {
 GET https://www.osintcat.net/api/machine_viewer/search
 ```
 
-Search for infected machines by hostname or username. Costs **1 credit** per search.
+Search for infected machines by hostname or username. Counts as one lookup.
 
 <ParamField query="query" type="string" required>
   The search term (hostname, username, UUID, etc.)

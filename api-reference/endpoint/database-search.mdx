@@ -1,0 +1,139 @@
+---
+title: 'Database Search'
+api: 'GET https://www.osintcat.net/api/database-search'
+description: 'Search stealer-log and combo-list collections by e-mail or domain'
+---
+
+Searches stealer-log and combo-list collections for an e-mail address or a domain.
+
+## Parameters
+
+<ParamField query="query" type="string" required>
+  The e-mail address or domain.
+</ParamField>
+
+<ParamField query="type" type="string">
+  `email` or `domain`. Detected from `query` when left out.
+</ParamField>
+
+## Headers
+
+<ParamField header="X-API-KEY" type="string" required>
+  Your API key.
+</ParamField>
+
+## Usage
+
+Counts as one lookup against your plan's daily allowance (Max: unlimited). When the allowance is used up, the lookup can continue at a per-lookup price charged to your balance (the module's page in the dashboard shows the price); a lookup that finds nothing is not charged.
+
+## Example request
+
+<RequestExample>
+```bash cURL
+curl "https://www.osintcat.net/api/database-search?query=user%40example.com&type=email" \
+     -H "X-API-KEY: YOUR_API_KEY"
+```
+
+```python Python
+import requests
+
+url = "https://www.osintcat.net/api/database-search"
+params = {"query": "user@example.com", "type": "email"}
+headers = {"X-API-KEY": "YOUR_API_KEY"}
+
+response = requests.get(url, params=params, headers=headers, timeout=60)
+print(response.status_code, response.json())
+```
+
+```javascript Node.js
+const response = await fetch("https://www.osintcat.net/api/database-search?query=user%40example.com&type=email", {
+  headers: { "X-API-KEY": "YOUR_API_KEY" },
+});
+console.log(response.status, await response.json());
+```
+
+```php PHP
+<?php
+$curl = curl_init("https://www.osintcat.net/api/database-search?query=user%40example.com&type=email");
+curl_setopt_array($curl, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => ["X-API-KEY: YOUR_API_KEY"],
+]);
+$response = curl_exec($curl);
+$status = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+curl_close($curl);
+echo $status . " " . $response;
+```
+
+```go Go
+package main
+
+import (
+    "fmt"
+    "io"
+    "net/http"
+)
+
+func main() {
+    req, _ := http.NewRequest("GET", "https://www.osintcat.net/api/database-search?query=user%40example.com&type=email", nil)
+    req.Header.Set("X-API-KEY", "YOUR_API_KEY")
+    resp, err := http.DefaultClient.Do(req)
+    if err != nil {
+        panic(err)
+    }
+    defer resp.Body.Close()
+    body, _ := io.ReadAll(resp.Body)
+    fmt.Println(resp.StatusCode, string(body))
+}
+```
+</RequestExample>
+
+## Response
+
+<ResponseField name="results" type="array">
+  Matching entries (typically a URL, login and password, and when it was collected).
+</ResponseField>
+<ResponseField name="results_count" type="number">
+  Number of entries.
+</ResponseField>
+<ResponseField name="query" type="string">
+  The query searched for.
+</ResponseField>
+<ResponseField name="type" type="string">
+  `email` or `domain`.
+</ResponseField>
+<ResponseField name="execution_time" type="string">
+  Time the search took.
+</ResponseField>
+<ResponseField name="status" type="string">
+  `success`.
+</ResponseField>
+
+<ResponseExample>
+```json 200
+{
+  "results": [
+    {
+      "url": "https://accounts.example.org/login",
+      "login": "user@example.com",
+      "password": "hunter2",
+      "date": "2025-11-02"
+    }
+  ],
+  "results_count": 1,
+  "query": "user@example.com",
+  "type": "email",
+  "execution_time": "0.84s",
+  "status": "success"
+}
+```
+</ResponseExample>
+
+## Errors
+
+| Status | Error | When |
+| --- | --- | --- |
+| 502 | `Upstream error` | The search backend answered with an error. Not charged. |
+| 504 | `timeout error` | The search backend did not answer in time. Not charged. |
+
+See [Errors](/api-reference/introduction#errors) for the responses every endpoint can return.

@@ -34,55 +34,17 @@
           {
             "group": "Account",
             "pages": [
-              "api-reference/endpoint/user"
+              "api-reference/endpoint/user",
+              "api-reference/endpoint/modules"
             ]
           },
           {
-            "group": "OSINT Lookups",
+            "group": "Breach & Leak Data",
             "pages": [
               "api-reference/endpoint/breach",
-              "api-reference/endpoint/discord",
-              "api-reference/endpoint/roblox",
-              "api-reference/endpoint/discord-to-roblox",
-              "api-reference/endpoint/phone-osint",
-              "api-reference/endpoint/email-osint",
-              "api-reference/endpoint/minecraft",
-              "api-reference/endpoint/minecraft-osint",
-              "api-reference/endpoint/stealer-logs"
-            ]
-          },
-          {
-            "group": "Network & Domain",
-            "pages": [
-              "api-reference/endpoint/ip",
-              "api-reference/endpoint/dns-resolver",
-              "api-reference/endpoint/domain"
-            ]
-          },
-          {
-            "group": "Public Records",
-            "pages": [
-              "api-reference/endpoint/chilean-name"
-            ]
-          },
-          {
-            "group": "Vehicle",
-            "pages": [
-              "api-reference/endpoint/vin"
-            ]
-          },
-          {
-            "group": "Gaming",
-            "pages": [
-              "api-reference/endpoint/gta-players",
-              "api-reference/endpoint/gta-spotted"
-            ]
-          },
-          {
-            "group": "Resolvers",
-            "pages": [
-              "api-reference/endpoint/tiktok-resolver",
-              "api-reference/endpoint/instagram-resolver"
+              "api-reference/endpoint/database-search",
+              "api-reference/endpoint/domain",
+              "api-reference/endpoint/discord"
             ]
           },
           {
@@ -92,15 +54,62 @@
             ]
           },
           {
-            "group": "FootPrint Intel",
+            "group": "E-mail, Phone & Network",
+            "pages": [
+              "api-reference/endpoint/email-osint",
+              "api-reference/endpoint/phone-osint",
+              "api-reference/endpoint/ip",
+              "api-reference/endpoint/dns-resolver"
+            ]
+          },
+          {
+            "group": "Social & Developer Profiles",
+            "pages": [
+              "api-reference/endpoint/github",
+              "api-reference/endpoint/reddit",
+              "api-reference/endpoint/twitter"
+            ]
+          },
+          {
+            "group": "Gaming",
+            "pages": [
+              "api-reference/endpoint/minecraft",
+              "api-reference/endpoint/minecraft-osint",
+              "api-reference/endpoint/minecraft-profile",
+              "api-reference/endpoint/steam",
+              "api-reference/endpoint/xbox",
+              "api-reference/endpoint/twitch",
+              "api-reference/endpoint/chess",
+              "api-reference/endpoint/gta-players",
+              "api-reference/endpoint/gta-spotted"
+            ]
+          },
+          {
+            "group": "Link Resolvers",
+            "pages": [
+              "api-reference/endpoint/tiktok-resolver",
+              "api-reference/endpoint/instagram-resolver"
+            ]
+          },
+          {
+            "group": "Vehicles & Public Records",
+            "pages": [
+              "api-reference/endpoint/vin",
+              "api-reference/endpoint/chilean-name",
+              "api-reference/endpoint/chilean-car"
+            ]
+          },
+          {
+            "group": "Currently Unavailable",
             "pages": [
               "api-reference/endpoint/email-footprint",
-              "api-reference/endpoint/user-footprint"
+              "api-reference/endpoint/user-footprint",
+              "api-reference/endpoint/roblox",
+              "api-reference/endpoint/discord-to-roblox"
             ]
           }
         ]
       }
-
     ]
   },
   "logo": {
@@ -117,7 +126,7 @@
     "primary": {
       "type": "button",
       "label": "Get API Key",
-      "href": "https://www.osintcat.net/account?tab=api"
+      "href": "https://www.osintcat.net/account?tab=developer"
     }
   },
   "contextual": {
@@ -141,6 +150,10 @@
     {
       "source": "/.md",
       "destination": "/index.md"
+    },
+    {
+      "source": "/api-reference/endpoint/stealer-logs",
+      "destination": "/api-reference/endpoint/database-search"
     }
   ]
 }

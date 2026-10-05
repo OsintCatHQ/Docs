@@ -1,119 +1,117 @@
 ---
-title: 'API Introduction'
-description: 'OsintCat API documentation - Comprehensive OSINT and data lookup services'
+title: 'Introduction'
+description: 'Authentication, plans, limits, billing and errors for every OsintCat API endpoint'
 ---
 
-## Welcome to OsintCat API
-
-OsintCat provides a powerful REST API for OSINT (Open Source Intelligence) lookups, breach data searches, and public record queries. Our API enables developers to integrate comprehensive data lookup capabilities into their applications.
+The OsintCat API gives you the lookups of the OsintCat dashboard over HTTPS, with JSON responses.
 
 ## Base URL
-
-All API requests should be made to:
 
 ```
 https://www.osintcat.net/api
 ```
 
+Every endpoint answers `GET` (most also accept `POST`); parameters always go in the query string.
+
 ## Authentication
 
-All API endpoints require authentication using an API key. Include your API key in the header as "X-API-KEY"
-
-<Warning>
-Keep your API key secure and never expose it in client-side code or public repositories.
-</Warning>
-
-### Example Request
+Send your API key in the `X-API-KEY` header with every request:
 
 ```bash
 curl "https://www.osintcat.net/api/user" -H "X-API-KEY: YOUR_API_KEY"
 ```
 
-## Rate Limits
-
-Our API has a soft rate limit of **3 requests per second**. If you exceed this limit, you will receive a 30-minute timeout.
+Create keys in your account under **[Settings → Developer](https://www.osintcat.net/account?tab=developer)**. A key is shown once, when you create it: store it then. Keys start with `cat_`; your account's CatID is not an API key.
 
 <Warning>
-**Rate Limit Warning**: Exceeding 3 requests per second will result in a 30-minute timeout. Please implement proper rate limiting in your application.
+  Treat a key like a password. Keep it on your server, never in a website, app or public repository. If a key may have leaked, revoke it in Settings → Developer and create a new one.
 </Warning>
 
-## Response Format
+### Scopes
 
-All API responses are returned in JSON format with proper HTTP status codes:
+Each key carries one or more scopes:
 
-- `200` - Success
-- `400` - Bad Request (missing or invalid parameters)
-- `401` - Unauthorized (missing API key)
-- `403` - Forbidden (invalid API key)
-- `429` - Too Many Requests (rate limit exceeded)
-- `500` - Internal Server Error
+| Scope | Allows |
+| --- | --- |
+| `*` | Everything (the default for a new key) |
+| `osint:read` | All lookups and [Modules](/api-reference/endpoint/modules) |
+| `account:read` | [Account](/api-reference/endpoint/user) |
+| `billing:read` | Your balance: `GET /api/_/user/balance` answers `{"balance": 12.5}` (euros) |
 
-## API Plans
+A request outside the key's scopes is refused with `403 insufficient_scope`.
 
-Different API plans have different request limits:
+### Allowed IP addresses
 
-### Free Plan
-- **API Requests**: 0 requests/day
-- **Dashboard Requests**: 10 requests/day
+In Settings → Developer you can list the IP addresses your requests come from. With a list set, requests from any other address are refused with `403 IP_UNAUTHORIZED`. Leave the list empty to allow every address (for example for serverless platforms whose addresses change).
 
-### Premium Plan
-- **API Requests**: 50 requests/day
-- **Dashboard Requests**: Unlimited
+## Plans and daily allowance
 
-### Enterprise Plan
-- **API Requests**: Unlimited
-- **Dashboard Requests**: Unlimited
+API access is part of these plans:
 
-<Note>
-Daily limits reset at midnight UTC. You can check your current usage and limits using the `/api/user` endpoint.
-</Note>
+| Plan | Lookups per day | API keys |
+| --- | --- | --- |
+| Researcher | 300 | 1 |
+| Investigator | 750 | 3 |
+| Max | Unlimited | 5 |
 
-## Available Endpoints
+Free and Starter plans have no API access (`403 UPGRADE_REQUIRED`). Prices are on the [pricing page](https://www.osintcat.net/pricing).
 
-Our API provides the following endpoints:
+- Each lookup counts once against the daily allowance, including answers served from a cache.
+- The allowance resets at 00:00 UTC. [Account](/api-reference/endpoint/user) shows what is left; many lookups also return it in `_meta.lookups_left`.
+- [Account](/api-reference/endpoint/user), [Modules](/api-reference/endpoint/modules) and polling a task do not count.
 
-### Account Management
-- **[User Info](/api-reference/endpoint/user)** - Get account information, usage statistics, and email OSINT credit information
+### When the allowance is used up
 
-### OSINT Lookups
-- **[Breach Lookup](/api-reference/endpoint/breach)** - Search for records in data breaches
-- **[Discord Lookup](/api-reference/endpoint/discord)** - Find Discord user information
-- **[Roblox to Discord](/api-reference/endpoint/roblox)** - Find Discord accounts linked to a Roblox username (wildcard supported)
-- **[Discord to Roblox](/api-reference/endpoint/discord-to-roblox)** - Find linked Roblox accounts
-- **[Email OSINT](/api-reference/endpoint/email-osint)** - Discover websites an email is registered on
-- **[Phone OSINT](/api-reference/endpoint/phone-osint)** - Gather intelligence on phone numbers
-- **[GitHub OSINT](/api-reference/endpoint/github-osint)** - Find GitHub accounts by email
-- **[GitHub User Info](/api-reference/endpoint/github-userinfo)** - Get GitHub user information and email from commits
-- **[Username Lookup](/api-reference/endpoint/username)** - Find stealer logs and site information
-- **[Minecraft Lookup](/api-reference/endpoint/minecraft)** - Minecraft breach data lookup
-- **[Minecraft OSINT](/api-reference/endpoint/minecraft-osint)** - Minecraft OSINT lookup with caching
+Most lookups continue at a per-lookup price charged to your account balance; the module's page in the dashboard shows the price. You are charged only when the lookup finds something, and never for a lookup that fails. Without enough balance the request is refused with `402 INSUFFICIENT_BALANCE`. Lookups that have no per-lookup price are refused with `429 LIMIT_REACHED` until the allowance resets.
 
-### Network & Domain
-- **[IP Info](/api-reference/endpoint/ip)** - Get IP information and stealer logs
-- **[DNS Resolver](/api-reference/endpoint/dns-resolver)** - Resolve domain names to IP addresses
-- **[Domain Lookup](/api-reference/endpoint/domain)** - Domain stealer lookup
+[Email OSINT](/api-reference/endpoint/email-osint) is always charged to the balance and does not use the allowance. Each endpoint's page says how it is counted under **Usage**.
 
-### Public Records
-- **[Chilean Name](/api-reference/endpoint/chilean-name)** - Find information about Chilean persons
+## Rate limits
 
-## Getting Started
+- **3 requests per second** per account, across all endpoints.
+- **5,000 requests per hour** per endpoint from one IP address.
 
-1. **[Sign up](https://www.osintcat.net/register)** for an account
-2. **[Get your API key](https://www.osintcat.net/dashboard)** from the dashboard
-3. Start making requests to our endpoints
-4. Check your usage with the `/api/user` endpoint
+Over a limit, the request is refused with `429 rate_limit`; the `Retry-After` header says how many seconds to wait. Keep well inside the limits: repeatedly exceeding them can pause API access for your account for a while.
 
-## Code Examples
+## Responses
 
-We provide code examples in multiple languages for each endpoint. You can find examples in:
-- cURL
-- Python
-- Node.js
-- PHP
+Responses are JSON. A successful lookup answers `200` even when nothing was found; the endpoint's page shows how an empty result looks. Errors carry an `error` field, usually with a `message`, and server-side failures an `error_id` you can give support.
 
-## Support
+## Errors
 
-If you need help or have questions:
-- Check the endpoint-specific documentation
-- Review the [Quickstart Guide](/quickstart)
-- Contact support through your dashboard
+| Status | `error` | Meaning |
+| --- | --- | --- |
+| 400 | `query error` and others | A required parameter is missing or invalid. |
+| 401 | `API key required` | No `X-API-KEY` header. |
+| 402 | `INSUFFICIENT_BALANCE` | The lookup would be charged and your balance does not cover it. |
+| 403 | `Unauthorized` / `Invalid API key` | The key does not exist, was revoked, or has expired. |
+| 403 | `insufficient_scope` | The key lacks the scope this endpoint needs. |
+| 403 | `UPGRADE_REQUIRED` | Your plan has no API access. |
+| 403 | `ACCESS_DENIED` | Your plan does not include this module, or it is currently unavailable. [Modules](/api-reference/endpoint/modules) shows which you can use. |
+| 403 | `IP_UNAUTHORIZED` | The request came from an address that is not on your allowed list. |
+| 403 | `ACCOUNT_REQUIRES_VERIFICATION` | Verify your account in the dashboard first. |
+| 403 | `account_frozen` | API access for the account is suspended; contact support. |
+| 410 | `ENDPOINT_RETIRED` | The endpoint no longer exists. |
+| 429 | `LIMIT_REACHED` | The daily allowance is used up. |
+| 429 | `rate_limit` | Too many requests; see `Retry-After`. |
+| 500 | `An internal error occurred.` | Something failed on our side; quote the `error_id` to support. |
+| 502 / 503 / 504 | (varies) | A data source is unavailable, under maintenance, or too slow. Not charged. |
+
+## Endpoints
+
+<CardGroup cols={2}>
+  <Card title="Account" icon="user" href="/api-reference/endpoint/user">Plan and today's allowance</Card>
+  <Card title="Modules" icon="list-check" href="/api-reference/endpoint/modules">Which lookups your plan includes</Card>
+  <Card title="Breach Lookup" icon="shield-halved" href="/api-reference/endpoint/breach">Breach and leak indexes</Card>
+  <Card title="Database Search" icon="database" href="/api-reference/endpoint/database-search">Stealer logs and combo lists</Card>
+  <Card title="Email OSINT" icon="envelope" href="/api-reference/endpoint/email-osint">Where an address is registered</Card>
+  <Card title="Phone OSINT" icon="phone" href="/api-reference/endpoint/phone-osint">Carrier, line type, risk</Card>
+  <Card title="Machine Viewer" icon="computer" href="/api-reference/endpoint/machine-viewer">Infected machine records</Card>
+  <Card title="IP Lookup" icon="network-wired" href="/api-reference/endpoint/ip">Services and location of an IP</Card>
+</CardGroup>
+
+The navigation lists every endpoint.
+
+## Responsible use
+
+Use the API only for lawful purposes such as security research, fraud prevention and investigations you are entitled to carry out, and in line with the [Terms of Service](https://www.osintcat.net/tos) and the data protection law that applies to you.

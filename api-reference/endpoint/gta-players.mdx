@@ -1,46 +1,36 @@
 ---
 title: 'GTA Online Players'
 api: 'GET https://www.osintcat.net/api/gta/players'
+description: 'Find GTA Online players by name or Rockstar ID'
 ---
 
-Search tracked GTA Online players by display name or Rockstar ID. Returns platform, last seen timestamp, and full raw data for each match.
+Searches GTA Online players by display name or Rockstar ID (RID). Up to 200 results.
 
 ## Parameters
 
 <ParamField query="query" type="string" required>
-  The search value: a player name (partial match) or Rockstar ID (exact match)
+  A player name or RID.
 </ParamField>
 
 <ParamField query="type" type="string" default="name">
-  Search mode. `name` for display name lookup, `rid` for Rockstar ID lookup
+  `name` (default) or `rid`.
 </ParamField>
 
 ## Headers
 
 <ParamField header="X-API-KEY" type="string" required>
-  Your API key
+  Your API key.
 </ParamField>
 
-## Response
+## Usage
 
-<ResponseField name="results" type="array">
-  List of matched player objects
-  <Expandable title="Player object">
-    <ResponseField name="rid" type="integer">Rockstar ID</ResponseField>
-    <ResponseField name="name" type="string">Display name</ResponseField>
-    <ResponseField name="platform" type="string">Platform (`pc`, `ps`, `xbox`)</ResponseField>
-    <ResponseField name="last_seen" type="integer">Unix timestamp of last recorded presence</ResponseField>
-  </Expandable>
-</ResponseField>
+Counts as one lookup against your plan's daily allowance (Max: unlimited). When the allowance is used up, the lookup can continue at a per-lookup price charged to your balance (the module's page in the dashboard shows the price); a lookup that finds nothing is not charged.
 
-<ResponseField name="results_count" type="integer">Number of results returned</ResponseField>
-<ResponseField name="elapsed_ms" type="number">Server-side processing time in milliseconds</ResponseField>
+## Example request
 
-## Example Request
-
-<CodeGroup>
+<RequestExample>
 ```bash cURL
-curl "https://www.osintcat.net/api/gta/players?query=salzling&type=name" \
+curl "https://www.osintcat.net/api/gta/players?query=example&type=name" \
      -H "X-API-KEY: YOUR_API_KEY"
 ```
 
@@ -48,168 +38,104 @@ curl "https://www.osintcat.net/api/gta/players?query=salzling&type=name" \
 import requests
 
 url = "https://www.osintcat.net/api/gta/players"
-params = {
-    "query": "salzling",
-    "type": "name"
-}
+params = {"query": "example", "type": "name"}
 headers = {"X-API-KEY": "YOUR_API_KEY"}
 
-response = requests.get(url, params=params, headers=headers)
-
-if response.ok:
-    print(response.json())
-else:
-    print(f"Error: {response.status_code}")
+response = requests.get(url, params=params, headers=headers, timeout=60)
+print(response.status_code, response.json())
 ```
 
 ```javascript Node.js
-const url = 'https://www.osintcat.net/api/gta/players?query=salzling&type=name';
-
-fetch(url, {
-    headers: { 'X-API-KEY': 'YOUR_API_KEY' }
-})
-    .then(res => res.json())
-    .then(json => console.log(json))
-    .catch(err => console.error('error:' + err));
+const response = await fetch("https://www.osintcat.net/api/gta/players?query=example&type=name", {
+  headers: { "X-API-KEY": "YOUR_API_KEY" },
+});
+console.log(response.status, await response.json());
 ```
 
 ```php PHP
 <?php
-
-$curl = curl_init();
-
-$url = "https://www.osintcat.net/api/gta/players?query=salzling&type=name";
-
+$curl = curl_init("https://www.osintcat.net/api/gta/players?query=example&type=name");
 curl_setopt_array($curl, [
-    CURLOPT_URL => $url,
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_HTTPHEADER => ["X-API-KEY: YOUR_API_KEY"],
 ]);
-
 $response = curl_exec($curl);
-$err = curl_error($curl);
+$status = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
 curl_close($curl);
-
-if ($err) {
-    echo "cURL Error: " . $err;
-} else {
-    echo $response;
-}
+echo $status . " " . $response;
 ```
 
 ```go Go
 package main
 
 import (
-    "encoding/json"
     "fmt"
     "io"
     "net/http"
-    "net/url"
 )
 
 func main() {
-    baseURL := "https://www.osintcat.net/api/gta/players"
-    params := url.Values{}
-    params.Add("query", "salzling")
-    params.Add("type", "name")
-
-    fullURL := baseURL + "?" + params.Encode()
-
-    req, _ := http.NewRequest("GET", fullURL, nil)
+    req, _ := http.NewRequest("GET", "https://www.osintcat.net/api/gta/players?query=example&type=name", nil)
     req.Header.Set("X-API-KEY", "YOUR_API_KEY")
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
+    resp, err := http.DefaultClient.Do(req)
     if err != nil {
-        fmt.Printf("Error: %v\n", err)
-        return
+        panic(err)
     }
     defer resp.Body.Close()
-
     body, _ := io.ReadAll(resp.Body)
-    var result map[string]interface{}
-    json.Unmarshal(body, &result)
-    fmt.Printf("%+v\n", result)
+    fmt.Println(resp.StatusCode, string(body))
 }
 ```
+</RequestExample>
 
-```ruby Ruby
-require 'net/http'
-require 'json'
-require 'uri'
+## Response
 
-uri = URI('https://www.osintcat.net/api/gta/players')
-uri.query = URI.encode_www_form({ query: 'salzling', type: 'name' })
+<ResponseField name="api" type="string">
+  Always `OsintCat`.
+</ResponseField>
+<ResponseField name="endpoint" type="string">
+  `gta/players`.
+</ResponseField>
+<ResponseField name="elapsed_ms" type="number">
+  Time taken.
+</ResponseField>
+<ResponseField name="timestamp" type="string">
+  When the search ran (UTC).
+</ResponseField>
+<ResponseField name="query" type="string">
+  The query.
+</ResponseField>
+<ResponseField name="search_type" type="string">
+  `name` or `rid`.
+</ResponseField>
+<ResponseField name="results_count" type="number">
+  Number of players found (`results` holds at most 200).
+</ResponseField>
+<ResponseField name="results" type="array">
+  Players.
+  <Expandable title="properties">
+    <ResponseField name="rid" type="integer">
+      Rockstar ID.
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Display name.
+    </ResponseField>
+    <ResponseField name="platform" type="string">
+      Platform.
+    </ResponseField>
+    <ResponseField name="last_seen" type="integer">
+      Last seen (Unix time).
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+<ResponseField name="_meta" type="object">
+  Your usage after this request.
+</ResponseField>
 
-request = Net::HTTP::Get.new(uri)
-request['X-API-KEY'] = 'YOUR_API_KEY'
+## Errors
 
-response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
-    http.request(request)
-end
+| Status | Error | When |
+| --- | --- | --- |
+| 502 | `GTA API request failed` | The player search is unavailable right now. |
 
-if response.is_a?(Net::HTTPSuccess)
-    puts JSON.pretty_generate(JSON.parse(response.body))
-else
-    puts "Error: #{response.code}"
-end
-```
-
-```java Java
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-
-public class OsintCatAPI {
-    public static void main(String[] args) {
-        try {
-            String apiUrl = "https://www.osintcat.net/api/gta/players?query=salzling&type=name";
-            URL url = new URL(apiUrl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("X-API-KEY", "YOUR_API_KEY");
-
-            int responseCode = conn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
-                while ((inputLine = in.readLine()) != null) response.append(inputLine);
-                in.close();
-                System.out.println(response.toString());
-            } else {
-                System.out.println("Error: " + responseCode);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-}
-```
-
-```csharp C#
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-
-class Program
-{
-    static async Task Main(string[] args)
-    {
-        using (var client = new HttpClient())
-        {
-            client.DefaultRequestHeaders.Add("X-API-KEY", "YOUR_API_KEY");
-            var response = await client.GetAsync(
-                "https://www.osintcat.net/api/gta/players?query=salzling&type=name");
-
-            if (response.IsSuccessStatusCode)
-                Console.WriteLine(await response.Content.ReadAsStringAsync());
-            else
-                Console.WriteLine($"Error: {response.StatusCode}");
-        }
-    }
-}
-```
-</CodeGroup>
+See [Errors](/api-reference/introduction#errors) for the responses every endpoint can return.

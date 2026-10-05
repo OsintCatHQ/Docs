@@ -1,39 +1,32 @@
 ---
-title: 'Instagram Resolver'
+title: 'Instagram Share Link'
 api: 'GET https://www.osintcat.net/api/instagram-resolver'
+description: 'Who shared an Instagram post or reel link'
 ---
 
-Resolve an Instagram share link to expose both the **author** of the post and the **sharer** (the user who generated the share link). Pulls the `xig_logged_out_dynamic_dialog_info` payload that Instagram embeds for logged-out viewers.
+Resolves an Instagram post or reel share link to the account that shared it and the author of the post. Profile links cannot be resolved.
 
 ## Parameters
 
 <ParamField query="link" type="string" required>
-  An Instagram share URL, e.g. `https://www.instagram.com/share/p/ABCDEFGHIJ`
+  An Instagram post or reel share link (with its `igsh` parameter). `url` or `query` are accepted as well.
 </ParamField>
 
 ## Headers
 
 <ParamField header="X-API-KEY" type="string" required>
-  Your API key
+  Your API key.
 </ParamField>
 
-## Response
+## Usage
 
-```json
-{
-  "success": true,
-  "author":  { "username": "...", "avatar": "..." },
-  "sharer":  { "username": "...", "full_name": "...", "id": "...", "avatar": "..." },
-  "entity_id": "...",
-  "_meta": { ... }
-}
-```
+Counts as one lookup against your plan's daily allowance (Max: unlimited). When the allowance is used up, the lookup can continue at a per-lookup price charged to your balance (the module's page in the dashboard shows the price); a lookup that finds nothing is not charged.
 
-## Example Request
+## Example request
 
-<CodeGroup>
+<RequestExample>
 ```bash cURL
-curl "https://www.osintcat.net/api/instagram-resolver?link=https%3A%2F%2Fwww.instagram.com%2Fshare%2Fp%2FABCDEFGHIJ" \
+curl "https://www.osintcat.net/api/instagram-resolver?link=https%3A%2F%2Fwww.instagram.com%2Freel%2FCexample%2F%3Figsh%3DMWexample" \
      -H "X-API-KEY: YOUR_API_KEY"
 ```
 
@@ -41,190 +34,80 @@ curl "https://www.osintcat.net/api/instagram-resolver?link=https%3A%2F%2Fwww.ins
 import requests
 
 url = "https://www.osintcat.net/api/instagram-resolver"
-params = {"link": "https://www.instagram.com/share/p/ABCDEFGHIJ"}
+params = {"link": "https://www.instagram.com/reel/Cexample/?igsh=MWexample"}
 headers = {"X-API-KEY": "YOUR_API_KEY"}
 
-response = requests.get(url, params=params, headers=headers)
-
-if response.ok:
-    print(response.json())
-else:
-    print(f"Error: {response.status_code}")
+response = requests.get(url, params=params, headers=headers, timeout=60)
+print(response.status_code, response.json())
 ```
 
 ```javascript Node.js
-const url = 'https://www.osintcat.net/api/instagram-resolver?link=' + encodeURIComponent('https://www.instagram.com/share/p/ABCDEFGHIJ');
-
-fetch(url, {
-    headers: {
-        'X-API-KEY': 'YOUR_API_KEY'
-    }
-})
-    .then(res => res.json())
-    .then(json => console.log(json))
-    .catch(err => console.error('error:' + err));
+const response = await fetch("https://www.osintcat.net/api/instagram-resolver?link=https%3A%2F%2Fwww.instagram.com%2Freel%2FCexample%2F%3Figsh%3DMWexample", {
+  headers: { "X-API-KEY": "YOUR_API_KEY" },
+});
+console.log(response.status, await response.json());
 ```
 
 ```php PHP
 <?php
-
-$curl = curl_init();
-
-$link = urlencode("https://www.instagram.com/share/p/ABCDEFGHIJ");
-$url = "https://www.osintcat.net/api/instagram-resolver?link=$link";
-
+$curl = curl_init("https://www.osintcat.net/api/instagram-resolver?link=https%3A%2F%2Fwww.instagram.com%2Freel%2FCexample%2F%3Figsh%3DMWexample");
 curl_setopt_array($curl, [
-    CURLOPT_URL => $url,
     CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_HTTPHEADER => [
-        "X-API-KEY: YOUR_API_KEY"
-    ],
+    CURLOPT_HTTPHEADER => ["X-API-KEY: YOUR_API_KEY"],
 ]);
-
 $response = curl_exec($curl);
-$err = curl_error($curl);
-
+$status = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
 curl_close($curl);
-
-if ($err) {
-    echo "cURL Error #:" . $err;
-} else {
-    echo $response;
-}
+echo $status . " " . $response;
 ```
 
 ```go Go
 package main
 
 import (
-    "encoding/json"
     "fmt"
     "io"
     "net/http"
-    "net/url"
 )
 
 func main() {
-    baseURL := "https://www.osintcat.net/api/instagram-resolver"
-    params := url.Values{}
-    params.Add("link", "https://www.instagram.com/share/p/ABCDEFGHIJ")
-
-    fullURL := baseURL + "?" + params.Encode()
-
-    req, _ := http.NewRequest("GET", fullURL, nil)
+    req, _ := http.NewRequest("GET", "https://www.osintcat.net/api/instagram-resolver?link=https%3A%2F%2Fwww.instagram.com%2Freel%2FCexample%2F%3Figsh%3DMWexample", nil)
     req.Header.Set("X-API-KEY", "YOUR_API_KEY")
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
+    resp, err := http.DefaultClient.Do(req)
     if err != nil {
-        fmt.Printf("Error: %v\n", err)
-        return
+        panic(err)
     }
     defer resp.Body.Close()
-
     body, _ := io.ReadAll(resp.Body)
-    var result map[string]interface{}
-    json.Unmarshal(body, &result)
-    fmt.Printf("%+v\n", result)
+    fmt.Println(resp.StatusCode, string(body))
 }
 ```
+</RequestExample>
 
-```ruby Ruby
-require 'net/http'
-require 'json'
-require 'uri'
+## Response
 
-uri = URI('https://www.osintcat.net/api/instagram-resolver')
-uri.query = URI.encode_www_form({ link: 'https://www.instagram.com/share/p/ABCDEFGHIJ' })
+<ResponseField name="success" type="boolean">
+  `true` when resolved.
+</ResponseField>
+<ResponseField name="author" type="object">
+  The account that posted it: `username`, `avatar`.
+</ResponseField>
+<ResponseField name="sharer" type="object">
+  The account that shared the link: `username`, `full_name`, `id`, `avatar`.
+</ResponseField>
+<ResponseField name="entity_id" type="string">
+  ID of the shared post.
+</ResponseField>
+<ResponseField name="_meta" type="object">
+  Your usage after this request.
+</ResponseField>
 
-request = Net::HTTP::Get.new(uri)
-request['X-API-KEY'] = 'YOUR_API_KEY'
+## Errors
 
-response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
-    http.request(request)
-end
+| Status | Error | When |
+| --- | --- | --- |
+| 400 | `Provide a valid Instagram URL via ?link=...` | No link, not an Instagram link, or the link expired or points to a private post. Not charged. |
+| 422 | `profile_link` | A profile link: only post and reel share links can be resolved. Not charged. |
+| 502 | `(message)` | The link could not be resolved right now. Not charged. |
 
-if response.is_a?(Net::HTTPSuccess)
-    data = JSON.parse(response.body)
-    puts JSON.pretty_generate(data)
-else
-    puts "Error: #{response.code}"
-end
-```
-
-```java Java
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-
-public class OsintCatAPI {
-    public static void main(String[] args) {
-        try {
-            String link = URLEncoder.encode("https://www.instagram.com/share/p/ABCDEFGHIJ", "UTF-8");
-            String apiUrl = "https://www.osintcat.net/api/instagram-resolver?link=" + link;
-            URL url = new URL(apiUrl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("X-API-KEY", "YOUR_API_KEY");
-
-            int responseCode = conn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
-                System.out.println(response.toString());
-            } else {
-                System.out.println("Error: " + responseCode);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-}
-```
-
-```csharp C#
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.Web;
-
-class Program
-{
-    static async Task Main(string[] args)
-    {
-        using (var client = new HttpClient())
-        {
-            try
-            {
-                string link = HttpUtility.UrlEncode("https://www.instagram.com/share/p/ABCDEFGHIJ");
-                string url = $"https://www.osintcat.net/api/instagram-resolver?link={link}";
-                client.DefaultRequestHeaders.Add("X-API-KEY", "YOUR_API_KEY");
-
-                var response = await client.GetAsync(url);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    string content = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine(content);
-                }
-                else
-                {
-                    Console.WriteLine($"Error: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex.Message}");
-            }
-        }
-    }
-}
-```
-</CodeGroup>
+See [Errors](/api-reference/introduction#errors) for the responses every endpoint can return.

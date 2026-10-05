@@ -1,62 +1,36 @@
 ---
-title: 'Roblox to Discord'
+title: 'Roblox Lookup'
 api: 'GET https://www.osintcat.net/api/roblox'
+description: 'Discord accounts linked to a Roblox account'
 ---
 
-Find Discord accounts linked to a Roblox username. Searches our database of scraped Roblox-to-Discord mappings and returns matching profiles with Discord ID, username, and avatar where available.
+<Warning>
+  This lookup is currently unavailable; requests are refused with `403 ACCESS_DENIED`.
+</Warning>
+
+Finds Discord accounts linked to a Roblox username.
 
 ## Parameters
 
 <ParamField query="query" type="string" required>
-  Roblox username. Wildcard `*` is supported:
-
-  - `demon*` — usernames starting with `demon`
-  - `*boy` — usernames ending with `boy`
-  - `*123*` — usernames containing `123`
-
-  Plain queries (no `*`) match the username exactly (case-insensitive). Up to 50 results are returned.
+  A Roblox username.
 </ParamField>
 
 ## Headers
 
 <ParamField header="X-API-KEY" type="string" required>
-  Your API key
+  Your API key.
 </ParamField>
 
-## Response
+## Usage
 
-Returns a list of matches from the database. Each result contains the Roblox username and, if a linked Discord account is on file, the Discord ID plus username and avatar URL fetched live from Discord.
+Counts as one lookup against your plan's daily allowance (Max: unlimited). When the allowance is used up, the lookup can continue at a per-lookup price charged to your balance (the module's page in the dashboard shows the price); a lookup that finds nothing is not charged.
 
-```json
-{
-  "query": "demon*",
-  "count": 2,
-  "results": [
-    {
-      "roblox_name": "demonboy",
-      "discord_id": "123456789012345678",
-      "discord_username": "demon",
-      "discord_avatar": "https://cdn.discordapp.com/avatars/123456789012345678/abc123.png?size=128"
-    },
-    {
-      "roblox_name": "demon123",
-      "discord_id": null
-    }
-  ]
-}
-```
+## Example request
 
-If no matches are found, the API returns:
-
-```json
-{ "error": "No matches found in database." }
-```
-
-## Example Request
-
-<CodeGroup>
+<RequestExample>
 ```bash cURL
-curl "https://www.osintcat.net/api/roblox?query=demon*" \
+curl "https://www.osintcat.net/api/roblox?query=builderman" \
      -H "X-API-KEY: YOUR_API_KEY"
 ```
 
@@ -64,190 +38,58 @@ curl "https://www.osintcat.net/api/roblox?query=demon*" \
 import requests
 
 url = "https://www.osintcat.net/api/roblox"
-params = {"query": "demon*"}
+params = {"query": "builderman"}
 headers = {"X-API-KEY": "YOUR_API_KEY"}
 
-response = requests.get(url, params=params, headers=headers)
-
-if response.ok:
-    print(response.json())
-else:
-    print(f"Error: {response.status_code}")
+response = requests.get(url, params=params, headers=headers, timeout=60)
+print(response.status_code, response.json())
 ```
 
 ```javascript Node.js
-const url = 'https://www.osintcat.net/api/roblox?query=demon*';
-
-fetch(url, {
-    headers: {
-        'X-API-KEY': 'YOUR_API_KEY'
-    }
-})
-    .then(res => res.json())
-    .then(json => console.log(json))
-    .catch(err => console.error('error:' + err));
+const response = await fetch("https://www.osintcat.net/api/roblox?query=builderman", {
+  headers: { "X-API-KEY": "YOUR_API_KEY" },
+});
+console.log(response.status, await response.json());
 ```
 
 ```php PHP
 <?php
-
-$curl = curl_init();
-
-$url = "https://www.osintcat.net/api/roblox?query=" . urlencode("demon*");
-
+$curl = curl_init("https://www.osintcat.net/api/roblox?query=builderman");
 curl_setopt_array($curl, [
-    CURLOPT_URL => $url,
     CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_HTTPHEADER => [
-        "X-API-KEY: YOUR_API_KEY"
-    ],
+    CURLOPT_HTTPHEADER => ["X-API-KEY: YOUR_API_KEY"],
 ]);
-
 $response = curl_exec($curl);
-$err = curl_error($curl);
-
+$status = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
 curl_close($curl);
-
-if ($err) {
-    echo "cURL Error #:" . $err;
-} else {
-    echo $response;
-}
+echo $status . " " . $response;
 ```
 
 ```go Go
 package main
 
 import (
-    "encoding/json"
     "fmt"
     "io"
     "net/http"
-    "net/url"
 )
 
 func main() {
-    baseURL := "https://www.osintcat.net/api/roblox"
-    params := url.Values{}
-    params.Add("query", "demon*")
-
-    fullURL := baseURL + "?" + params.Encode()
-
-    req, _ := http.NewRequest("GET", fullURL, nil)
+    req, _ := http.NewRequest("GET", "https://www.osintcat.net/api/roblox?query=builderman", nil)
     req.Header.Set("X-API-KEY", "YOUR_API_KEY")
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
+    resp, err := http.DefaultClient.Do(req)
     if err != nil {
-        fmt.Printf("Error: %v\n", err)
-        return
+        panic(err)
     }
     defer resp.Body.Close()
-
     body, _ := io.ReadAll(resp.Body)
-    var result map[string]interface{}
-    json.Unmarshal(body, &result)
-    fmt.Printf("%+v\n", result)
+    fmt.Println(resp.StatusCode, string(body))
 }
 ```
+</RequestExample>
 
-```ruby Ruby
-require 'net/http'
-require 'json'
-require 'uri'
+## Response
 
-uri = URI('https://www.osintcat.net/api/roblox')
-uri.query = URI.encode_www_form({ query: 'demon*' })
+## Errors
 
-request = Net::HTTP::Get.new(uri)
-request['X-API-KEY'] = 'YOUR_API_KEY'
-
-response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
-    http.request(request)
-end
-
-if response.is_a?(Net::HTTPSuccess)
-    data = JSON.parse(response.body)
-    puts JSON.pretty_generate(data)
-else
-    puts "Error: #{response.code}"
-end
-```
-
-```java Java
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-
-public class OsintCatAPI {
-    public static void main(String[] args) {
-        try {
-            String query = URLEncoder.encode("demon*", StandardCharsets.UTF_8);
-            String apiUrl = "https://www.osintcat.net/api/roblox?query=" + query;
-            URL url = new URL(apiUrl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("X-API-KEY", "YOUR_API_KEY");
-
-            int responseCode = conn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
-                System.out.println(response.toString());
-            } else {
-                System.out.println("Error: " + responseCode);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-}
-```
-
-```csharp C#
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.Web;
-
-class Program
-{
-    static async Task Main(string[] args)
-    {
-        using (var client = new HttpClient())
-        {
-            try
-            {
-                string query = HttpUtility.UrlEncode("demon*");
-                string url = $"https://www.osintcat.net/api/roblox?query={query}";
-                client.DefaultRequestHeaders.Add("X-API-KEY", "YOUR_API_KEY");
-
-                var response = await client.GetAsync(url);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    string content = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine(content);
-                }
-                else
-                {
-                    Console.WriteLine($"Error: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex.Message}");
-            }
-        }
-    }
-}
-```
-</CodeGroup>
+See [Errors](/api-reference/introduction#errors) for the responses every endpoint can return.

@@ -1,31 +1,32 @@
 ---
 title: 'Phone OSINT'
 api: 'GET https://www.osintcat.net/api/phone-osint'
+description: 'Carrier, line type and risk signals for a phone number'
 ---
 
-Gather intelligence on a phone number, including carrier and associated online profiles.
+Returns what is known about a phone number: whether it is valid, the carrier and line type, the country, linked online accounts and a risk score.
 
 ## Parameters
 
 <ParamField query="query" type="string" required>
-  Phone number in international format (e.g., 14155552671)
+  The phone number in international format, e.g. `+4915112345678`. Spaces and dashes are allowed.
 </ParamField>
 
 ## Headers
 
 <ParamField header="X-API-KEY" type="string" required>
-  Your API key
+  Your API key.
 </ParamField>
 
-## Response
+## Usage
 
-Returns phone number information including carrier details, location data, and associated online profiles.
+Counts as one lookup against your plan's daily allowance (Max: unlimited). When the allowance is used up, the lookup can continue at a per-lookup price charged to your balance (the module's page in the dashboard shows the price); a lookup that finds nothing is not charged.
 
-## Example Request
+## Example request
 
-<CodeGroup>
+<RequestExample>
 ```bash cURL
-curl "https://www.osintcat.net/api/phone-osint?query=14155552671" \
+curl "https://www.osintcat.net/api/phone-osint?query=%2B4915112345678" \
      -H "X-API-KEY: YOUR_API_KEY"
 ```
 
@@ -33,185 +34,135 @@ curl "https://www.osintcat.net/api/phone-osint?query=14155552671" \
 import requests
 
 url = "https://www.osintcat.net/api/phone-osint"
-params = {"query": "14155552671"}
+params = {"query": "+4915112345678"}
 headers = {"X-API-KEY": "YOUR_API_KEY"}
 
-response = requests.get(url, params=params, headers=headers)
-
-if response.ok:
-    print(response.json())
-else:
-    print(f"Error: {response.status_code}")
+response = requests.get(url, params=params, headers=headers, timeout=60)
+print(response.status_code, response.json())
 ```
 
 ```javascript Node.js
-const url = 'https://www.osintcat.net/api/phone-osint?query=14155552671';
-
-fetch(url, {
-    headers: {
-        'X-API-KEY': 'YOUR_API_KEY'
-    }
-})
-    .then(res => res.json())
-    .then(json => console.log(json))
-    .catch(err => console.error('error:' + err));
+const response = await fetch("https://www.osintcat.net/api/phone-osint?query=%2B4915112345678", {
+  headers: { "X-API-KEY": "YOUR_API_KEY" },
+});
+console.log(response.status, await response.json());
 ```
 
 ```php PHP
 <?php
-
-$curl = curl_init();
-
-$url = "https://www.osintcat.net/api/phone-osint?query=14155552671";
-
+$curl = curl_init("https://www.osintcat.net/api/phone-osint?query=%2B4915112345678");
 curl_setopt_array($curl, [
-    CURLOPT_URL => $url,
     CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_HTTPHEADER => [
-        "X-API-KEY: YOUR_API_KEY"
-    ],
+    CURLOPT_HTTPHEADER => ["X-API-KEY: YOUR_API_KEY"],
 ]);
-
 $response = curl_exec($curl);
-$err = curl_error($curl);
-
+$status = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
 curl_close($curl);
-
-if ($err) {
-    echo "cURL Error #:" . $err;
-} else {
-    echo $response;
-}
+echo $status . " " . $response;
 ```
 
 ```go Go
 package main
 
 import (
-    "encoding/json"
     "fmt"
     "io"
     "net/http"
-    "net/url"
 )
 
 func main() {
-    baseURL := "https://www.osintcat.net/api/phone-osint"
-    params := url.Values{}
-    params.Add("query", "14155552671")
-    
-    fullURL := baseURL + "?" + params.Encode()
-    
-    req, _ := http.NewRequest("GET", fullURL, nil)
+    req, _ := http.NewRequest("GET", "https://www.osintcat.net/api/phone-osint?query=%2B4915112345678", nil)
     req.Header.Set("X-API-KEY", "YOUR_API_KEY")
-    
-    client := &http.Client{}
-    resp, err := client.Do(req)
+    resp, err := http.DefaultClient.Do(req)
     if err != nil {
-        fmt.Printf("Error: %v\n", err)
-        return
+        panic(err)
     }
     defer resp.Body.Close()
-    
     body, _ := io.ReadAll(resp.Body)
-    var result map[string]interface{}
-    json.Unmarshal(body, &result)
-    fmt.Printf("%+v\n", result)
+    fmt.Println(resp.StatusCode, string(body))
 }
 ```
+</RequestExample>
 
-```ruby Ruby
-require 'net/http'
-require 'json'
-require 'uri'
+## Response
 
-uri = URI('https://www.osintcat.net/api/phone-osint')
-uri.query = URI.encode_www_form({ query: '14155552671' })
+<ResponseField name="module" type="string">
+  Always `phone`.
+</ResponseField>
+<ResponseField name="query" type="string">
+  The number in E.164 format.
+</ResponseField>
+<ResponseField name="found" type="boolean">
+  Whether anything was found.
+</ResponseField>
+<ResponseField name="risk" type="object">
+  Risk assessment.
+  <Expandable title="properties">
+    <ResponseField name="score" type="number">
+      Score from 0 to 100, or `null`.
+    </ResponseField>
+    <ResponseField name="level" type="string">
+      `low`, `medium`, `high` or `unknown`.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+<ResponseField name="summary" type="array">
+  The main facts as `{label, value}` pairs.
+</ResponseField>
+<ResponseField name="sections" type="array">
+  Detailed findings, grouped (carrier, location, linked accounts ...).
+</ResponseField>
+<ResponseField name="raw" type="object">
+  The full answer the summary is built from.
+</ResponseField>
+<ResponseField name="_meta" type="object">
+  Your usage after this request (`plan`, `lookups_left`).
+</ResponseField>
 
-request = Net::HTTP::Get.new(uri)
-request['X-API-KEY'] = 'YOUR_API_KEY'
-
-response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
-    http.request(request)
-end
-
-if response.is_a?(Net::HTTPSuccess)
-    data = JSON.parse(response.body)
-    puts JSON.pretty_generate(data)
-else
-    puts "Error: #{response.code}"
-end
-```
-
-```java Java
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-
-public class OsintCatAPI {
-    public static void main(String[] args) {
-        try {
-            String apiUrl = "https://www.osintcat.net/api/phone-osint?query=14155552671";
-            URL url = new URL(apiUrl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("X-API-KEY", "YOUR_API_KEY");
-            
-            int responseCode = conn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
-                System.out.println(response.toString());
-            } else {
-                System.out.println("Error: " + responseCode);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-}
-```
-
-```csharp C#
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-
-class Program
+<ResponseExample>
+```json 200
 {
-    static async Task Main(string[] args)
+  "module": "phone",
+  "query": "+4915112345678",
+  "found": true,
+  "risk": {
+    "score": 12,
+    "level": "low"
+  },
+  "summary": [
     {
-        using (var client = new HttpClient())
-        {
-            try
-            {
-                string url = "https://www.osintcat.net/api/phone-osint?query=14155552671";
-                client.DefaultRequestHeaders.Add("X-API-KEY", "YOUR_API_KEY");
-                
-                var response = await client.GetAsync(url);
-                
-                if (response.IsSuccessStatusCode)
-                {
-                    string content = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine(content);
-                }
-                else
-                {
-                    Console.WriteLine($"Error: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex.Message}");
-            }
-        }
+      "label": "Number",
+      "value": "+4915112345678"
+    },
+    {
+      "label": "Valid number",
+      "value": "Yes"
+    },
+    {
+      "label": "Carrier",
+      "value": "Telekom Deutschland"
+    },
+    {
+      "label": "Line type",
+      "value": "Mobile"
     }
+  ],
+  "sections": [],
+  "raw": {},
+  "_meta": {
+    "plan": "investigator",
+    "lookups_left": 740
+  }
 }
 ```
-</CodeGroup>
+</ResponseExample>
+
+## Errors
+
+| Status | Error | When |
+| --- | --- | --- |
+| 400 | `phone_*` | The number cannot be a valid phone number; `code` says why (e.g. `phone_too_short`). |
+| 502 | `Upstream provider error` | The lookup could not be completed. |
+| 504 | `The request timed out.` | The lookup took too long. |
+
+See [Errors](/api-reference/introduction#errors) for the responses every endpoint can return.

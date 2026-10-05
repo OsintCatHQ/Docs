@@ -1,19 +1,15 @@
 ---
-title: 'Minecraft Player'
-api: 'GET https://www.osintcat.net/api/minecraft'
-description: 'Minecraft profile, name history and leaked records in one call'
+title: 'Chess.com Lookup'
+api: 'GET https://www.osintcat.net/api/chess-osint'
+description: 'Chess.com profile, ratings, clubs and leaked records'
 ---
 
-Combines the Minecraft profile of a player (UUID, name history, capes, skins) with records about them found in Minecraft server leaks.
+Returns the Chess.com profile of a player (ratings, clubs) and any records about the account found in the Chess.com leak.
 
 ## Parameters
 
 <ParamField query="query" type="string" required>
-  A Minecraft username (or the value matching `type`).
-</ParamField>
-
-<ParamField query="type" type="string" default="username">
-  What `query` is for the leak search: `username` (default), `uuid`, `email` or `ip`.
+  A Chess.com username or an e-mail address.
 </ParamField>
 
 ## Headers
@@ -30,15 +26,15 @@ Counts as one lookup against your plan's daily allowance (Max: unlimited). When 
 
 <RequestExample>
 ```bash cURL
-curl "https://www.osintcat.net/api/minecraft?query=Notch" \
+curl "https://www.osintcat.net/api/chess-osint?query=hikaru" \
      -H "X-API-KEY: YOUR_API_KEY"
 ```
 
 ```python Python
 import requests
 
-url = "https://www.osintcat.net/api/minecraft"
-params = {"query": "Notch"}
+url = "https://www.osintcat.net/api/chess-osint"
+params = {"query": "hikaru"}
 headers = {"X-API-KEY": "YOUR_API_KEY"}
 
 response = requests.get(url, params=params, headers=headers, timeout=60)
@@ -46,7 +42,7 @@ print(response.status_code, response.json())
 ```
 
 ```javascript Node.js
-const response = await fetch("https://www.osintcat.net/api/minecraft?query=Notch", {
+const response = await fetch("https://www.osintcat.net/api/chess-osint?query=hikaru", {
   headers: { "X-API-KEY": "YOUR_API_KEY" },
 });
 console.log(response.status, await response.json());
@@ -54,7 +50,7 @@ console.log(response.status, await response.json());
 
 ```php PHP
 <?php
-$curl = curl_init("https://www.osintcat.net/api/minecraft?query=Notch");
+$curl = curl_init("https://www.osintcat.net/api/chess-osint?query=hikaru");
 curl_setopt_array($curl, [
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_HTTPHEADER => ["X-API-KEY: YOUR_API_KEY"],
@@ -75,7 +71,7 @@ import (
 )
 
 func main() {
-    req, _ := http.NewRequest("GET", "https://www.osintcat.net/api/minecraft?query=Notch", nil)
+    req, _ := http.NewRequest("GET", "https://www.osintcat.net/api/chess-osint?query=hikaru", nil)
     req.Header.Set("X-API-KEY", "YOUR_API_KEY")
     resp, err := http.DefaultClient.Do(req)
     if err != nil {
@@ -90,42 +86,55 @@ func main() {
 
 ## Response
 
+<ResponseField name="success" type="boolean">
+  `true` when the lookup ran.
+</ResponseField>
+<ResponseField name="found" type="boolean">
+  Whether anything was found.
+</ResponseField>
 <ResponseField name="query" type="string">
   The query.
 </ResponseField>
-<ResponseField name="uuid" type="string">
-  Minecraft UUID, or `null`.
+<ResponseField name="resolved_username" type="string">
+  The username the lookup settled on.
 </ResponseField>
-<ResponseField name="username" type="string">
-  Current username, or `null`.
+<ResponseField name="live_profile" type="object">
+  The public profile (name, country, joined, last online, followers ...), or `null`.
 </ResponseField>
-<ResponseField name="name-history" type="array">
-  Earlier usernames.
+<ResponseField name="live_stats" type="object">
+  Ratings: `rapid`, `blitz`, `bullet`, `fide` (each `null` when unrated).
 </ResponseField>
-<ResponseField name="capes" type="array">
-  Capes on the account.
+<ResponseField name="live_clubs" type="array">
+  Up to 10 clubs.
 </ResponseField>
-<ResponseField name="skinHistory" type="array">
-  Skins the account has used.
+<ResponseField name="leak_records" type="array">
+  Records from the Chess.com leak.
 </ResponseField>
-<ResponseField name="results" type="array | object">
-  Records from Minecraft server leaks; `{"error": ...}` when the leak search was unavailable.
+<ResponseField name="leak_count" type="number">
+  Number of leak records.
 </ResponseField>
 
 <ResponseExample>
 ```json 200
 {
-  "query": "notch",
-  "uuid": "069a79f444e94726a5befca90e38aaf5",
-  "username": "Notch",
-  "name-history": [
-    {
-      "name": "Notch"
-    }
-  ],
-  "capes": [],
-  "skinHistory": [],
-  "results": []
+  "success": true,
+  "found": true,
+  "query": "hikaru",
+  "resolved_username": "hikaru",
+  "live_profile": {
+    "username": "hikaru",
+    "country": "US",
+    "joined": 1389043258
+  },
+  "live_stats": {
+    "rapid": 2850,
+    "blitz": 3300,
+    "bullet": 3200,
+    "fide": 2800
+  },
+  "live_clubs": [],
+  "leak_records": [],
+  "leak_count": 0
 }
 ```
 </ResponseExample>

@@ -1,34 +1,25 @@
 ---
 title: "Quickstart"
-description: "Get started with OsintCat API in minutes"
+description: "Create an API key and make your first request"
 ---
 
-## Get Started in Three Steps
+## 1. Get API access
 
-Get your API key and make your first request to the OsintCat API.
+API access is part of the Researcher, Investigator and Max plans ([pricing](https://www.osintcat.net/pricing)). [Create an account](https://www.osintcat.net/register) if you have none.
 
-### Step 1: Create an Account
+## 2. Create a key
 
-<AccordionGroup>
-  <Accordion icon="user-plus" title="Sign up for an account">
-    1. Visit [https://www.osintcat.net/register](https://www.osintcat.net/register)
-    2. Fill in your details and create your account
-    3. Verify your email address if required
-  </Accordion>
-  <Accordion icon="key" title="Get your API key">
-    1. Log in to your [dashboard](https://www.osintcat.net/dashboard)
-    2. Navigate to your account settings
-    3. Copy your API key
-    
-    <Warning>
-    Keep your API key secure and never expose it in client-side code or public repositories.
-    </Warning>
-  </Accordion>
-</AccordionGroup>
+1. Open **[Settings → Developer](https://www.osintcat.net/account?tab=developer)**.
+2. Create a key, give it a name, and tick the scopes it needs (lookups, account, balance). With none ticked, the key gets all scopes.
+3. Copy the key now: it is shown only once.
 
-### Step 2: Make Your First Request
+<Warning>
+  Keep the key on your server. Anyone with it can run lookups on your account.
+</Warning>
 
-Test the API by checking your account information:
+## 3. Check the key
+
+[Account](/api-reference/endpoint/user) does not count as a lookup:
 
 <CodeGroup>
 ```bash cURL
@@ -38,488 +29,99 @@ curl "https://www.osintcat.net/api/user" -H "X-API-KEY: YOUR_API_KEY"
 ```python Python
 import requests
 
-url = "https://www.osintcat.net/api/user"
-headers = {"X-API-KEY": "YOUR_API_KEY"}
-
-response = requests.get(url, headers=headers)
-
-if response.ok:
-    data = response.json()
-    print(f"Plan: {data['account_info']['plan']}")
-    print(f"API Requests Remaining: {data['usage']['api']['requests_remaining_today']}")
-else:
-    print(f"Error: {response.status_code}")
+response = requests.get(
+    "https://www.osintcat.net/api/user",
+    headers={"X-API-KEY": "YOUR_API_KEY"},
+    timeout=30,
+)
+response.raise_for_status()
+data = response.json()
+print("Plan:", data["account_info"]["plan"])
+print("Lookups left today:", data["usage"]["requests_remaining_today"])
 ```
 
 ```javascript Node.js
-const url = 'https://www.osintcat.net/api/user';
-
-fetch(url, {
-    headers: {
-        'X-API-KEY': 'YOUR_API_KEY'
-    }
-})
-    .then(res => res.json())
-    .then(data => {
-        console.log(`Plan: ${data.account_info.plan}`);
-        console.log(`API Requests Remaining: ${data.usage.api.requests_remaining_today}`);
-    })
-    .catch(err => console.error('error:' + err));
+const response = await fetch("https://www.osintcat.net/api/user", {
+  headers: { "X-API-KEY": "YOUR_API_KEY" },
+});
+const data = await response.json();
+console.log("Plan:", data.account_info.plan);
+console.log("Lookups left today:", data.usage.requests_remaining_today);
 ```
 
 ```php PHP
 <?php
-
-$curl = curl_init();
-
-$url = "https://www.osintcat.net/api/user";
-
-curl_setopt($curl, CURLOPT_URL, $url);
-curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-    'X-API-KEY: YOUR_API_KEY'
-));
-
-$response = curl_exec($curl);
-$err = curl_error($curl);
-
+$curl = curl_init("https://www.osintcat.net/api/user");
+curl_setopt_array($curl, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => ["X-API-KEY: YOUR_API_KEY"],
+]);
+$data = json_decode(curl_exec($curl), true);
 curl_close($curl);
-
-if ($err) {
-    echo "cURL Error #:" . $err;
-} else {
-    $data = json_decode($response, true);
-    echo "Plan: " . $data['account_info']['plan'] . "\n";
-    echo "API Requests Remaining: " . $data['usage']['api']['requests_remaining_today'] . "\n";
-}
-```
-
-```go Go
-package main
-
-import (
-    "encoding/json"
-    "fmt"
-    "io"
-    "net/http"
-    "net/url"
-)
-
-func main() {
-    url := "https://www.osintcat.net/api/user"
-
-    req, err := http.NewRequest("GET", url, nil)
-    if err != nil {
-        fmt.Printf("Error creating request: %v\n", err)
-        return
-    }
-
-    req.Header.Add("X-API-KEY", "YOUR_API_KEY")
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    if err != nil {
-        fmt.Printf("Error: %v\n", err)
-        return
-    }
-    defer resp.Body.Close()
-
-    body, err := io.ReadAll(resp.Body)
-    if err != nil {
-        fmt.Printf("Error reading response: %v\n", err)
-        return
-    }
-
-    var result map[string]interface{}
-    json.Unmarshal(body, &result)
-
-    accountInfo := result["account_info"].(map[string]interface{})
-    usage := result["usage"].(map[string]interface{})
-    apiUsage := usage["api"].(map[string]interface{})
-
-    fmt.Printf("Plan: %v\n", accountInfo["plan"])
-    fmt.Printf("API Requests Remaining: %v\n", apiUsage["requests_remaining_today"])
-}
-```
-
-```ruby Ruby
-require 'net/http'
-require 'json'
-require 'uri'
-
-uri = URI('https://www.osintcat.net/api/user')
-
-request = Net::HTTP::Get.new(uri)
-request['X-API-KEY'] = 'YOUR_API_KEY'
-
-response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
-    http.request(request)
-end
-
-if response.is_a?(Net::HTTPSuccess)
-    data = JSON.parse(response.body)
-    puts "Plan: #{data['account_info']['plan']}"
-    puts "API Requests Remaining: #{data['usage']['api']['requests_remaining_today']}"
-else
-    puts "Error: #{response.code}"
-end
-```
-
-```java Java
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import org.json.JSONObject;
-
-public class OsintCatAPI {
-    public static void main(String[] args) {
-        try {
-            String apiUrl = "https://www.osintcat.net/api/user";
-            URL url = new URL(apiUrl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("X-API-KEY", "YOUR_API_KEY");
-
-            int responseCode = conn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                BufferedReader in = new BufferedReader(
-                    new InputStreamReader(conn.getInputStream())
-                );
-                String inputLine;
-                StringBuffer response = new StringBuffer();
-
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
-
-                JSONObject json = new JSONObject(response.toString());
-                JSONObject accountInfo = json.getJSONObject("account_info");
-                JSONObject usage = json.getJSONObject("usage");
-                JSONObject apiUsage = usage.getJSONObject("api");
-
-                System.out.println("Plan: " + accountInfo.getString("plan"));
-                System.out.println("API Requests Remaining: " + apiUsage.get("requests_remaining_today"));
-            } else {
-                System.out.println("Error: " + responseCode);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-}
-```
-
-```csharp C#
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.Text.Json;
-
-class Program
-{
-    static async Task Main(string[] args)
-    {
-        using (var client = new HttpClient())
-        {
-            try
-            {
-                string url = "https://www.osintcat.net/api/user";
-                client.DefaultRequestHeaders.Add("X-API-KEY", "YOUR_API_KEY");
-
-                var response = await client.GetAsync(url);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    string content = await response.Content.ReadAsStringAsync();
-                    var json = JsonDocument.Parse(content);
-                    var root = json.RootElement;
-
-                    Console.WriteLine($"Plan: {root.GetProperty("account_info").GetProperty("plan").GetString()}");
-                    Console.WriteLine($"API Requests Remaining: {root.GetProperty("usage").GetProperty("api").GetProperty("requests_remaining_today")}");
-                }
-                else
-                {
-                    Console.WriteLine($"Error: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex.Message}");
-            }
-        }
-    }
-}
+echo "Plan: " . $data["account_info"]["plan"] . "\n";
+echo "Lookups left today: " . $data["usage"]["requests_remaining_today"] . "\n";
 ```
 </CodeGroup>
 
-### Step 3: Try a Lookup Endpoint
+```json
+{
+  "account_info": {
+    "username": "analyst",
+    "email": "analyst@example.com",
+    "plan": "Investigator",
+    "plan_expires": "2026-11-05T09:12:44"
+  },
+  "usage": {
+    "request_limit_daily": 750,
+    "requests_remaining_today": 750,
+    "api_access": true
+  }
+}
+```
 
-Now try a breach lookup:
+## 4. Run a lookup
 
 <CodeGroup>
 ```bash cURL
-curl "https://www.osintcat.net/api/breach?query=test@example.com&id=YOUR_API_KEY"
+curl "https://www.osintcat.net/api/breach?query=user@example.com" -H "X-API-KEY: YOUR_API_KEY"
 ```
 
 ```python Python
 import requests
 
-url = "https://www.osintcat.net/api/breach"
-params = {
-    "query": "test@example.com",
-    "id": "YOUR_API_KEY"
-}
-
-response = requests.get(url, params=params)
-
-if response.ok:
-    data = response.json()
-    print(f"Found {data['results_count']} breach records")
-    print(data)
+response = requests.get(
+    "https://www.osintcat.net/api/breach",
+    params={"query": "user@example.com"},
+    headers={"X-API-KEY": "YOUR_API_KEY"},
+    timeout=60,
+)
+if response.status_code == 429:
+    print("Slow down or wait for tomorrow's allowance:", response.json())
 else:
-    print(f"Error: {response.status_code}")
+    response.raise_for_status()
+    result = response.json()
+    print(result["results_count"], "records; lookups left:", result["_meta"]["lookups_left"])
 ```
 
 ```javascript Node.js
-const url = 'https://www.osintcat.net/api/breach?query=test@example.com&id=YOUR_API_KEY';
-
-fetch(url)
-    .then(res => res.json())
-    .then(data => {
-        console.log(`Found ${data.results_count} breach records`);
-        console.log(data);
-    })
-    .catch(err => console.error('error:' + err));
-```
-
-```php PHP
-<?php
-
-$curl = curl_init();
-
-$url = "https://www.osintcat.net/api/breach?query=test@example.com&id=YOUR_API_KEY";
-
-curl_setopt($curl, CURLOPT_URL, $url);
-curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-
-$response = curl_exec($curl);
-$err = curl_error($curl);
-
-curl_close($curl);
-
-if ($err) {
-    echo "cURL Error #:" . $err;
-} else {
-    $data = json_decode($response, true);
-    echo "Found " . $data['results_count'] . " breach records\n";
-    echo $response;
-}
-```
-
-```go Go
-package main
-
-import (
-    "encoding/json"
-    "fmt"
-    "io"
-    "net/http"
-    "net/url"
-)
-
-func main() {
-    baseURL := "https://www.osintcat.net/api/breach"
-    params := url.Values{}
-    params.Add("query", "test@example.com")
-    params.Add("id", "YOUR_API_KEY")
-    
-    fullURL := baseURL + "?" + params.Encode()
-    
-    resp, err := http.Get(fullURL)
-    if err != nil {
-        fmt.Printf("Error: %v\n", err)
-        return
-    }
-    defer resp.Body.Close()
-    
-    body, err := io.ReadAll(resp.Body)
-    if err != nil {
-        fmt.Printf("Error reading response: %v\n", err)
-        return
-    }
-    
-    var result map[string]interface{}
-    json.Unmarshal(body, &result)
-    
-    resultsCount := result["results_count"]
-    fmt.Printf("Found %v breach records\n", resultsCount)
-    fmt.Printf("%+v\n", result)
-}
-```
-
-```ruby Ruby
-require 'net/http'
-require 'json'
-require 'uri'
-
-uri = URI('https://www.osintcat.net/api/breach')
-params = { query: 'test@example.com', id: 'YOUR_API_KEY' }
-uri.query = URI.encode_www_form(params)
-
-response = Net::HTTP.get_response(uri)
-
-if response.is_a?(Net::HTTPSuccess)
-    data = JSON.parse(response.body)
-    puts "Found #{data['results_count']} breach records"
-    puts JSON.pretty_generate(data)
-else
-    puts "Error: #{response.code}"
-end
-```
-
-```java Java
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import org.json.JSONObject;
-
-public class OsintCatAPI {
-    public static void main(String[] args) {
-        try {
-            String apiUrl = "https://www.osintcat.net/api/breach?query=test@example.com&id=YOUR_API_KEY";
-            URL url = new URL(apiUrl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            
-            int responseCode = conn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                BufferedReader in = new BufferedReader(
-                    new InputStreamReader(conn.getInputStream())
-                );
-                String inputLine;
-                StringBuffer response = new StringBuffer();
-                
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
-                
-                JSONObject json = new JSONObject(response.toString());
-                System.out.println("Found " + json.getInt("results_count") + " breach records");
-                System.out.println(json.toString(2));
-            } else {
-                System.out.println("Error: " + responseCode);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-}
-```
-
-```csharp C#
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.Text.Json;
-
-class Program
-{
-    static async Task Main(string[] args)
-    {
-        using (var client = new HttpClient())
-        {
-            try
-            {
-                string url = "https://www.osintcat.net/api/breach?query=test@example.com&id=YOUR_API_KEY";
-                var response = await client.GetAsync(url);
-                
-                if (response.IsSuccessStatusCode)
-                {
-                    string content = await response.Content.ReadAsStringAsync();
-                    var json = JsonDocument.Parse(content);
-                    var root = json.RootElement;
-                    
-                    Console.WriteLine($"Found {root.GetProperty("results_count").GetInt32()} breach records");
-                    Console.WriteLine(content);
-                }
-                else
-                {
-                    Console.WriteLine($"Error: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error: {ex.Message}");
-            }
-        }
-    }
-}
+const url = new URL("https://www.osintcat.net/api/breach");
+url.searchParams.set("query", "user@example.com");
+const response = await fetch(url, { headers: { "X-API-KEY": "YOUR_API_KEY" } });
+const result = await response.json();
+console.log(response.status, result.results_count, result._meta);
 ```
 </CodeGroup>
 
-## Understanding Rate Limits
+## Good practice
 
-<Warning>
-**Important**: Our API has a soft rate limit of **3 requests per second**. Exceeding this limit will result in a 30-minute timeout.
-</Warning>
+- **Handle `429`.** Stay under 3 requests per second and wait for `Retry-After` when a request is refused. See [Rate limits](/api-reference/introduction#rate-limits).
+- **Check access first.** [Modules](/api-reference/endpoint/modules) shows which lookups your plan includes.
+- **Keep keys apart.** Use one key per application, with only the scopes it needs, so you can revoke one without stopping the others.
+- **Log `error_id`.** Server-side errors carry one; support can find the request with it.
 
-- Implement proper rate limiting in your application
-- Use exponential backoff for retries
-- Monitor your usage with the `/api/user` endpoint
-
-## API Plans
-
-### Free Plan
-- API Requests: 0 requests/day
-- Dashboard Requests: 10 requests/day
-
-### Premium Plan
-- API Requests: 50 requests/day
-- Dashboard Requests: Unlimited
-
-### Enterprise Plan
-- API Requests: Unlimited
-- Dashboard Requests: Unlimited
-
-<Note>
-Daily limits reset at midnight UTC. Check your usage anytime with the `/api/user` endpoint.
-</Note>
-
-## Next Steps
+## Next
 
 <CardGroup cols={2}>
-  <Card title="Browse API Reference" icon="book" href="/api-reference/introduction">
-    Explore all available endpoints and their parameters.
-  </Card>
-  <Card title="View Examples" icon="code" href="/api-reference/endpoint/breach">
-    See code examples for each endpoint in multiple languages.
-  </Card>
-  <Card title="Check Usage" icon="chart-line" href="/api-reference/endpoint/user">
-    Learn how to monitor your API usage and limits.
-  </Card>
-  <Card title="Get Support" icon="headset" href="https://www.osintcat.net/dashboard">
-    Access support through your dashboard.
-  </Card>
+  <Card title="Introduction" icon="book" href="/api-reference/introduction">Plans, billing, limits and every error</Card>
+  <Card title="Breach Lookup" icon="shield-halved" href="/api-reference/endpoint/breach">The most used lookup</Card>
 </CardGroup>
-
-## Common Use Cases
-
-### Security Research
-Use breach lookups and email OSINT to investigate security incidents and data leaks.
-
-### Account Verification
-Verify user information across multiple platforms using username and email lookups.
-
-### Network Analysis
-Analyze IP addresses and domains to understand network infrastructure and potential threats.
-
-### Social Media Intelligence
-Gather information from Discord and other platforms for legitimate research purposes.
-
-<Note>
-Always ensure you have proper authorization and comply with applicable laws when using OSINT tools.
-</Note>

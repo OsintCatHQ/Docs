@@ -1,104 +1,52 @@
 ---
-title: "OsintCat API Documentation"
-description: "Comprehensive API documentation for OsintCat - OSINT and data lookup services"
+title: "OsintCat API"
+description: "OSINT lookups, breach and leak search, and public records over a simple JSON API"
 ---
 
-## Welcome to OsintCat API
+The OsintCat API gives your applications the lookups of the OsintCat dashboard: breach and leak search, e-mail and phone intelligence, infected machine records, gaming and social profiles, link resolvers and public records.
 
-OsintCat provides a powerful REST API for OSINT (Open Source Intelligence) lookups, breach data searches, and public record queries. Integrate comprehensive data lookup capabilities into your applications.
-
-<Card
-  title="Get Started"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our quickstart guide to get your API key and make your first request.
+<Card title="Quickstart" icon="rocket" href="/quickstart" horizontal>
+  Create a key and make your first request in a few minutes.
 </Card>
 
-## Quick Links
-
 <Columns cols={2}>
-  <Card
-    title="API Reference"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Browse all available API endpoints and their documentation.
+  <Card title="Introduction" icon="book" href="/api-reference/introduction">
+    Authentication, plans, limits, billing and errors.
   </Card>
-  <Card
-    title="Get API Key"
-    icon="key"
-    href="https://www.osintcat.net/account?tab=api"
-  >
-    Sign up for an account and get your API key to start making requests.
+  <Card title="Get an API key" icon="key" href="https://www.osintcat.net/account?tab=developer">
+    Keys are created in Settings → Developer.
   </Card>
-  <Card
-    title="Dashboard"
-    icon="chart-line"
-    href="https://www.osintcat.net/dashboard"
-  >
-    View your API usage, manage your account, and monitor your requests.
+  <Card title="Pricing" icon="tag" href="https://www.osintcat.net/pricing">
+    API access comes with Researcher, Investigator and Max.
   </Card>
-  <Card
-    title="Pricing"
-    icon="tag"
-    href="https://www.osintcat.net/pricing"
-  >
-    View our pricing plans and choose the one that fits your needs.
+  <Card title="Dashboard" icon="chart-line" href="https://www.osintcat.net/dashboard">
+    Run the same lookups in the browser.
   </Card>
 </Columns>
 
-## Features
-
-### Comprehensive OSINT Lookups
-- **Breach Data**: Search across multiple breach databases
-- **Social Media**: Lookup Discord, Roblox, and more
-- **Email & Phone**: Discover where emails and phone numbers are registered
-- **Username Search**: Find information across multiple platforms
-- **Network Intelligence**: IP and domain lookups with stealer logs
-
-### Developer Friendly
-- **RESTful API**: Simple HTTP requests with JSON responses
-- **Multiple Languages**: Code examples in cURL, Python, Node.js, and PHP
-- **Rate Limiting**: Clear rate limits with automatic timeout protection
-- **Comprehensive Docs**: Detailed documentation for every endpoint
-
-### Reliable & Secure
-- **API Key Authentication**: Secure access with API keys
-- **Error Handling**: Clear error messages and HTTP status codes
-- **Usage Tracking**: Monitor your API usage in real-time
-- **Plan Flexibility**: Choose from Free, Premium, or Enterprise plans
-
-## Popular Endpoints
+## What you can look up
 
 <CardGroup cols={2}>
-  <Card title="User Info" icon="user" href="/api-reference/endpoint/user">
-    Get account information and usage statistics
-  </Card>
   <Card title="Breach Lookup" icon="shield-halved" href="/api-reference/endpoint/breach">
-    Search for records in data breaches
+    E-mails, usernames, phone numbers and passwords across breach indexes.
   </Card>
-  {/* <Card title="Email OSINT" icon="envelope" href="/api-reference/endpoint/email-osint">
-    Discover websites an email is registered on
-  </Card> */}
-  <Card title="Discord Lookup" icon="discord" href="/api-reference/endpoint/discord">
-    Find Discord user information
+  <Card title="Database Search" icon="database" href="/api-reference/endpoint/database-search">
+    Stealer logs and combo lists by e-mail or domain.
   </Card>
-  <Card title="IP Info" icon="network-wired" href="/api-reference/endpoint/ip">
-    Get IP information and stealer logs
+  <Card title="Email OSINT" icon="envelope" href="/api-reference/endpoint/email-osint">
+    Where an address is registered.
   </Card>
-  <Card title="Username Lookup" icon="at" href="/api-reference/endpoint/username">
-    Find information across multiple platforms
+  <Card title="Phone OSINT" icon="phone" href="/api-reference/endpoint/phone-osint">
+    Carrier, line type, linked accounts and risk.
+  </Card>
+  <Card title="Machine Viewer" icon="computer" href="/api-reference/endpoint/machine-viewer">
+    Infected machines, their files and extracted data.
+  </Card>
+  <Card title="Profiles" icon="users" href="/api-reference/endpoint/github">
+    GitHub, Reddit, X, Twitch, Steam, Xbox, Chess.com and Minecraft.
   </Card>
 </CardGroup>
 
-## Need Help?
+## Need help?
 
-<Card
-  title="View API Reference"
-  icon="book"
-  href="/api-reference/introduction"
->
-  Browse our complete API documentation with examples and detailed parameter descriptions.
-</Card>
+Questions about the API go to [support](https://www.osintcat.net/support). Quote the `error_id` from a failed response so we can find the request.
