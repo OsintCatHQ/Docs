@@ -32,7 +32,7 @@ Checks which websites and services an e-mail address is registered with and in w
 
 ## Usage
 
-Does not use your daily allowance. Each lookup that finds something is charged to your balance (the module's page in the dashboard shows the price); a lookup that finds nothing, or fails, is not charged.
+Counts as one lookup against your plan's daily allowance (Max: unlimited). When the allowance is used up, the lookup can continue at a per-lookup price charged to your balance (the module's page in the dashboard shows the price); a lookup that finds nothing is not charged.
 
 ## Example request
 
@@ -187,6 +187,17 @@ Results for the same address may come from a cache for up to 15 minutes.
     </ResponseField>
   </Expandable>
 </ResponseField>
+<ResponseField name="_meta" type="object">
+  Your usage after this request.
+  <Expandable title="properties">
+    <ResponseField name="plan" type="string">
+      Plan id.
+    </ResponseField>
+    <ResponseField name="lookups_left" type="number | string">
+      Lookups left today, `unlimited` on Max, or `charging` when the allowance is used up and the lookup was charged to your balance.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
 
 <ResponseExample>
 ```json 200
@@ -205,6 +216,10 @@ Results for the same address may come from a cache for up to 15 minutes.
       }
     ],
     "api": []
+  },
+  "_meta": {
+    "plan": "investigator",
+    "lookups_left": 739
   }
 }
 ```
@@ -216,7 +231,7 @@ Results for the same address may come from a cache for up to 15 minutes.
 | --- | --- | --- |
 | 400 | `USER_AGENT_IDENTITY_REQUIRED` | No purpose given. |
 | 401 | `API key required` | No `X-API-KEY` header. |
-| 402 | `INSUFFICIENT_BALANCE` | Your balance does not cover the lookup. |
+| 402 | `INSUFFICIENT_BALANCE` | The allowance is used up and your balance does not cover the lookup. |
 | 424 | `Provider Error` | The lookup could not be completed. Not charged. |
 
 See [Errors](/api-reference/introduction#errors) for the responses every endpoint can return.
