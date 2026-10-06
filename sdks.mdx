@@ -53,7 +53,7 @@ console.log(result);
 </Step>
 <Step title="Handle errors">
 
-Every answer other than 2xx raises an error with the status code and the answer. A failure on our side or at a data source also names an `error_id` and a `request_id`: quote them to support. A lookup that fails is not charged.
+Every answer other than 2xx raises an error with the status code and the answer, which names a `request_id` (a server error also an `error_id`): quote it to support. A lookup that fails is not charged.
 
 ```typescript
 import { OsintCat, OsintCatClient, OsintCatError } from "osintcat";
@@ -67,7 +67,7 @@ try {
     if (err instanceof OsintCat.TooManyRequestsError) {
         console.log("Daily allowance used up, or too many requests: try again later.");
     } else if (err instanceof OsintCatError) {
-        // err.body carries error, message, error_id and request_id
+        // err.body carries error, message and request_id (plus error_id on a server error)
         console.log(err.statusCode, err.body);
     } else {
         throw err;
@@ -132,7 +132,7 @@ print(result)
 </Step>
 <Step title="Handle errors">
 
-Every answer other than 2xx raises an error with the status code and the answer. A failure on our side or at a data source also names an `error_id` and a `request_id`: quote them to support. A lookup that fails is not charged.
+Every answer other than 2xx raises an error with the status code and the answer, which names a `request_id` (a server error also an `error_id`): quote it to support. A lookup that fails is not charged.
 
 ```python
 from osintcat import OsintCat
@@ -147,7 +147,7 @@ try:
 except TooManyRequestsError:
     print("Daily allowance used up, or too many requests: try again later.")
 except ApiError as err:
-    # err.body carries error, message, error_id and request_id
+    # err.body carries error, message and request_id (plus error_id on a server error)
     print(err.status_code, err.body)
 ```
 
@@ -215,7 +215,7 @@ func main() {
 </Step>
 <Step title="Handle errors">
 
-Every answer other than 2xx raises an error with the status code and the answer. A failure on our side or at a data source also names an `error_id` and a `request_id`: quote them to support. A lookup that fails is not charged.
+Every answer other than 2xx raises an error with the status code and the answer, which names a `request_id` (a server error also an `error_id`): quote it to support. A lookup that fails is not charged.
 
 ```go
 package main
@@ -239,7 +239,7 @@ func main() {
 	case errors.As(err, &limited):
 		fmt.Println("Daily allowance used up, or too many requests: try again later.")
 	case errors.As(err, &apiErr):
-		// the error text carries the answer: error, message, error_id and request_id
+		// the error text carries the answer: error, message and request_id (plus error_id on a server error)
 		fmt.Println(apiErr.StatusCode, err)
 	case err != nil:
 		panic(err)
@@ -305,7 +305,7 @@ echo json_encode($result, JSON_PRETTY_PRINT), PHP_EOL;
 </Step>
 <Step title="Handle errors">
 
-Every answer other than 2xx raises an error with the status code and the answer. A failure on our side or at a data source also names an `error_id` and a `request_id`: quote them to support. A lookup that fails is not charged.
+Every answer other than 2xx raises an error with the status code and the answer, which names a `request_id` (a server error also an `error_id`): quote it to support. A lookup that fails is not charged.
 
 ```php
 <?php
@@ -324,7 +324,7 @@ try {
     if ($e->getCode() === 429) {
         echo 'Daily allowance used up, or too many requests: try again later.', PHP_EOL;
     } else {
-        // the body carries error, message, error_id and request_id
+        // the body carries error, message and request_id (plus error_id on a server error)
         echo $e->getCode(), ' ', json_encode($e->getBody()), PHP_EOL;
     }
 }

@@ -264,7 +264,7 @@ echo json_encode($result, JSON_PRETTY_PRINT), PHP_EOL;
 - **Handle `429`.** Stay under 3 requests per second and wait for `Retry-After` when a request is refused. See [Rate limits](/api-reference/introduction#rate-limits).
 - **Check access first.** [Modules](/api-reference/endpoint/modules) shows which lookups your plan includes.
 - **Keep keys apart.** Use one key per application, with only the scopes it needs, so you can revoke one without stopping the others.
-- **Log `error_id` and `request_id`.** Failed requests carry both; support can find the request with either.
+- **Log `request_id`.** Every error answer names one, and a server error also an `error_id`; support can find the request with either.
 
 ## Next
 

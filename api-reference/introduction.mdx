@@ -77,7 +77,7 @@ Over a limit, the request is refused with `429 rate_limit`; the `Retry-After` he
 
 ## Responses
 
-Responses are JSON. A successful lookup answers `200` even when nothing was found; the endpoint's page shows how an empty result looks. Errors carry an `error` field, usually with a `message`. A failed request (a failure on our side or at a data source) carries an `error_id` and a `request_id`: quote them to support so we can find it.
+Responses are JSON. A successful lookup answers `200` even when nothing was found; the endpoint's page shows how an empty result looks. Errors carry an `error` field, usually with a `message`, and every error answer names its `request_id`. A server error (`5xx`) also names an `error_id`. Quote them to support so we can find the request; the `X-Request-Id` header carries the request id on every response, successful ones included.
 
 ## Errors
 
@@ -97,7 +97,7 @@ Responses are JSON. A successful lookup answers `200` even when nothing was foun
 | 429 | `LIMIT_REACHED` | The daily allowance is used up. |
 | 429 | `rate_limit` | Too many requests; see `Retry-After`. |
 | 500 | `internal_server_error` | Something failed on our side; quote the `error_id` and `request_id` to support. |
-| 424 | (varies) | The lookup could not be completed: a data source failed or was too slow. The `X-Upstream-Status` header says which (`502` or `504`). Not charged. |
+| 424 | (varies) | The lookup could not be completed: a data source failed or was too slow. The `X-Upstream-Status` header says which (`502` or `504`). Not charged; quote the `request_id` to support. |
 | 503 | (varies) | The lookup is under maintenance. Not charged. |
 
 ## Endpoints
