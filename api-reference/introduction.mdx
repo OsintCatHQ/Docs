@@ -23,6 +23,8 @@ curl "https://www.osintcat.net/api/user" -H "X-API-KEY: YOUR_API_KEY"
 
 Create keys in your account under **[Settings → Developer](https://www.osintcat.net/account/developer)**. A key is shown once, when you create it: store it then. Keys start with `cat_`; your account's CatID is not an API key.
 
+When you create a key you choose when it expires: in 7, 30 or 90 days, in a year, never, or on a date you pick. An expired key is refused like a revoked one (`403`); keys are not renewed, so create a new key and delete the old one. You can rename a key at any time.
+
 <Warning>
   Treat a key like a password. Keep it on your server, never in a website, app or public repository. If a key may have leaked, revoke it in Settings → Developer and create a new one.
 </Warning>
