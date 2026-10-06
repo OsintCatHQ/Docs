@@ -142,21 +142,18 @@ func main() {
 
 ## Response
 
-The decoder's answer for the chosen `type`, typically `{"Count": n, "Message": "...", "Results": [...]}`. Decoded VINs are cached for an hour.
+The answer depends on `type`: `decode` and `wmi` return one object with the decoded fields (empty strings for fields the VIN does not carry); `batch` and the catalogue types return a list. Decoded VINs are cached for an hour.
 
 <ResponseExample>
 ```json 200
 {
-  "Count": 1,
-  "Message": "Results returned successfully",
-  "Results": [
-    {
-      "Make": "HONDA",
-      "Model": "Accord",
-      "ModelYear": "2003",
-      "VIN": "1HGCM82633A004352"
-    }
-  ]
+  "VIN": "1HGCM82633A004352",
+  "Make": "HONDA",
+  "Model": "Accord",
+  "ModelYear": "2003",
+  "Manufacturer": "AMERICAN HONDA MOTOR CO., INC.",
+  "BodyClass": "Coupe",
+  "ABS": ""
 }
 ```
 </ResponseExample>

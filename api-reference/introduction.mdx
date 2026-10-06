@@ -97,7 +97,8 @@ Responses are JSON. A successful lookup answers `200` even when nothing was foun
 | 429 | `LIMIT_REACHED` | The daily allowance is used up. |
 | 429 | `rate_limit` | Too many requests; see `Retry-After`. |
 | 500 | `An internal error occurred.` | Something failed on our side; quote the `error_id` to support. |
-| 502 / 503 / 504 | (varies) | A data source is unavailable, under maintenance, or too slow. Not charged. |
+| 424 | (varies) | The lookup could not be completed: a data source failed or was too slow. The `X-Upstream-Status` header says which (`502` or `504`). Not charged. |
+| 503 | (varies) | The lookup is under maintenance. Not charged. |
 
 ## Endpoints
 
