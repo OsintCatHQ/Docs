@@ -48,10 +48,45 @@ described in [Errors](/api-reference/introduction#errors).
   Keep your API key on the server. Never ship it in a browser or mobile app.
 </Warning>
 
-## Python and Go
+## Go
 
-Python and Go SDKs are on their way. Until then, every endpoint page has a Python and a Go example that
-calls the API directly.
+Go 1.21 or later.
+
+```sh
+go get github.com/OsintCatHQ/osintcat-go
+```
+
+```go
+import (
+	"context"
+	"errors"
+	"fmt"
+
+	osintcat "github.com/OsintCatHQ/osintcat-go"
+	osintcatclient "github.com/OsintCatHQ/osintcat-go/client"
+)
+
+client := osintcatclient.NewClient() // reads OSINTCAT_API_KEY
+breach, err := client.Breach.Search(context.Background(), &osintcat.SearchBreachRequest{Query: "user@example.com"})
+var limited *osintcat.TooManyRequestsError
+if errors.As(err, &limited) {
+	// allowance used up, or slow down
+} else if err == nil {
+	fmt.Println(*breach.ResultsCount)
+}
+```
+
+## Python
+
+The Python SDK is ready and will be on PyPI shortly. Until then, every endpoint page has a Python example
+that calls the API directly.
+
+## Source code
+
+The SDKs are open source (MIT):
+[TypeScript](https://github.com/OsintCatHQ/osintcat-typescript),
+[Python](https://github.com/OsintCatHQ/osintcat-python),
+[Go](https://github.com/OsintCatHQ/osintcat-go).
 
 ## Upgrading from osintcat 1.x
 
