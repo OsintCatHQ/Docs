@@ -10,7 +10,7 @@ The official SDKs cover every endpoint you can use today, with typed requests an
 <Steps>
 <Step title="Create an API key">
 
-Under [Account → Developer](https://www.osintcat.net/account/developer), create a key. Choose its scopes and how long it works. The key is shown once: copy it.
+Under [Settings → Developer](https://www.osintcat.net/account/developer), create a key. Choose its scopes and how long it works. The key is shown once: copy it.
 
 </Step>
 <Step title="Install the SDK">
@@ -53,7 +53,7 @@ console.log(result);
 </Step>
 <Step title="Handle errors">
 
-Every answer other than 2xx raises an error with the status code and the answer, which names an `error_id` and a `request_id`: quote them to support. A lookup that fails is not charged.
+Every answer other than 2xx raises an error with the status code and the answer. A failure on our side or at a data source also names an `error_id` and a `request_id`: quote them to support. A lookup that fails is not charged.
 
 ```typescript
 import { OsintCat, OsintCatClient, OsintCatError } from "osintcat";
@@ -85,7 +85,7 @@ Every endpoint page shows its call in each language. Source and issues: [github.
 <Steps>
 <Step title="Create an API key">
 
-Under [Account → Developer](https://www.osintcat.net/account/developer), create a key. Choose its scopes and how long it works. The key is shown once: copy it.
+Under [Settings → Developer](https://www.osintcat.net/account/developer), create a key. Choose its scopes and how long it works. The key is shown once: copy it.
 
 </Step>
 <Step title="Install the SDK">
@@ -132,7 +132,7 @@ print(result)
 </Step>
 <Step title="Handle errors">
 
-Every answer other than 2xx raises an error with the status code and the answer, which names an `error_id` and a `request_id`: quote them to support. A lookup that fails is not charged.
+Every answer other than 2xx raises an error with the status code and the answer. A failure on our side or at a data source also names an `error_id` and a `request_id`: quote them to support. A lookup that fails is not charged.
 
 ```python
 from osintcat import OsintCat
@@ -161,7 +161,7 @@ Every endpoint page shows its call in each language. Source and issues: [github.
 <Steps>
 <Step title="Create an API key">
 
-Under [Account → Developer](https://www.osintcat.net/account/developer), create a key. Choose its scopes and how long it works. The key is shown once: copy it.
+Under [Settings → Developer](https://www.osintcat.net/account/developer), create a key. Choose its scopes and how long it works. The key is shown once: copy it.
 
 </Step>
 <Step title="Install the SDK">
@@ -215,7 +215,7 @@ func main() {
 </Step>
 <Step title="Handle errors">
 
-Every answer other than 2xx raises an error with the status code and the answer, which names an `error_id` and a `request_id`: quote them to support. A lookup that fails is not charged.
+Every answer other than 2xx raises an error with the status code and the answer. A failure on our side or at a data source also names an `error_id` and a `request_id`: quote them to support. A lookup that fails is not charged.
 
 ```go
 package main
@@ -259,7 +259,7 @@ Every endpoint page shows its call in each language. Source and issues: [github.
 <Steps>
 <Step title="Create an API key">
 
-Under [Account → Developer](https://www.osintcat.net/account/developer), create a key. Choose its scopes and how long it works. The key is shown once: copy it.
+Under [Settings → Developer](https://www.osintcat.net/account/developer), create a key. Choose its scopes and how long it works. The key is shown once: copy it.
 
 </Step>
 <Step title="Install the SDK">
@@ -305,7 +305,7 @@ echo json_encode($result, JSON_PRETTY_PRINT), PHP_EOL;
 </Step>
 <Step title="Handle errors">
 
-Every answer other than 2xx raises an error with the status code and the answer, which names an `error_id` and a `request_id`: quote them to support. A lookup that fails is not charged.
+Every answer other than 2xx raises an error with the status code and the answer. A failure on our side or at a data source also names an `error_id` and a `request_id`: quote them to support. A lookup that fails is not charged.
 
 ```php
 <?php

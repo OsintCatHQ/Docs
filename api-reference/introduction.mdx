@@ -44,7 +44,7 @@ A request outside the key's scopes is refused with `403 insufficient_scope`.
 
 ### Allowed IP addresses
 
-In Settings → Developer you can list the IP addresses your requests come from. With a list set, requests from any other address are refused with `403 IP_UNAUTHORIZED`. Leave the list empty to allow every address (for example for serverless platforms whose addresses change).
+In Settings → Developer you can list the IP addresses your requests come from. With a list set, requests from any other address are refused with `403 IP_UNAUTHORIZED`. Leave the list empty to allow every address (for example for serverless platforms whose addresses change). A list holds up to 1 address on Researcher, 3 on Investigator and 10 on Max.
 
 ## Plans and daily allowance
 
@@ -77,7 +77,7 @@ Over a limit, the request is refused with `429 rate_limit`; the `Retry-After` he
 
 ## Responses
 
-Responses are JSON. A successful lookup answers `200` even when nothing was found; the endpoint's page shows how an empty result looks. Errors carry an `error` field, usually with a `message`, and server-side failures an `error_id` you can give support.
+Responses are JSON. A successful lookup answers `200` even when nothing was found; the endpoint's page shows how an empty result looks. Errors carry an `error` field, usually with a `message`. A failed request (a failure on our side or at a data source) carries an `error_id` and a `request_id`: quote them to support so we can find it.
 
 ## Errors
 
@@ -96,7 +96,7 @@ Responses are JSON. A successful lookup answers `200` even when nothing was foun
 | 410 | `ENDPOINT_RETIRED` | The endpoint no longer exists. |
 | 429 | `LIMIT_REACHED` | The daily allowance is used up. |
 | 429 | `rate_limit` | Too many requests; see `Retry-After`. |
-| 500 | `An internal error occurred.` | Something failed on our side; quote the `error_id` to support. |
+| 500 | `internal_server_error` | Something failed on our side; quote the `error_id` and `request_id` to support. |
 | 424 | (varies) | The lookup could not be completed: a data source failed or was too slow. The `X-Upstream-Status` header says which (`502` or `504`). Not charged. |
 | 503 | (varies) | The lookup is under maintenance. Not charged. |
 
