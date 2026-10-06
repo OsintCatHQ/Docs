@@ -78,8 +78,28 @@ if errors.As(err, &limited) {
 
 ## Python
 
-The Python SDK is ready and will be on PyPI shortly. Until then, every endpoint page has a Python example
-that calls the API directly.
+Python 3.10 or later. Until the SDK is on PyPI, install it from GitHub:
+
+```sh
+pip install "git+https://github.com/OsintCatHQ/osintcat-python@main"
+```
+
+```python
+from osintcat import OsintCat
+from osintcat.errors import TooManyRequestsError
+
+client = OsintCat()  # reads OSINTCAT_API_KEY
+try:
+    breach = client.breach.search(query="user@example.com")
+    print(breach.results_count)
+except TooManyRequestsError:
+    pass  # allowance used up, or slow down
+```
+
+<Warning>
+  Do not `pip install osintcat` for now: that name on PyPI still holds an old client that does not work
+  with the API.
+</Warning>
 
 ## Source code
 
