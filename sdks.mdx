@@ -1,0 +1,59 @@
+---
+title: 'SDKs'
+description: 'Official client libraries for the OsintCat API'
+---
+
+The official SDKs wrap every endpoint in this documentation with typed requests and responses. They send
+your key in the `X-API-KEY` header and read it from the `OSINTCAT_API_KEY` environment variable when you do
+not pass one.
+
+## JavaScript and TypeScript
+
+Runs on Node.js 18+, Bun, Deno and Cloudflare Workers, with no dependencies.
+
+```sh
+npm install osintcat
+```
+
+```typescript
+import { OsintCat, OsintCatClient } from "osintcat";
+
+const client = new OsintCatClient({ apiKey: process.env.OSINTCAT_API_KEY });
+
+const account = await client.account.get();
+console.log(account.account_info?.plan, account.usage?.requests_remaining_today);
+
+const breach = await client.breach.search({ query: "user@example.com" });
+console.log(breach.results_count);
+
+try {
+    await client.github.profile({ username: "octocat" });
+} catch (err) {
+    if (err instanceof OsintCat.TooManyRequestsError) {
+        // allowance used up, or slow down
+    }
+}
+```
+
+Every method is named after its endpoint group: `client.breach.search()`, `client.github.profile()`,
+`client.dns.resolve()`. Any answer other than 2xx throws an error with the status code and the body
+described in [Errors](/api-reference/introduction#errors).
+
+<Note>
+  The SDK does not retry on its own. A lookup retried after a timeout may already have been counted or
+  charged, and `429 LIMIT_REACHED` cannot succeed before the allowance resets at 00:00 UTC.
+</Note>
+
+<Warning>
+  Keep your API key on the server. Never ship it in a browser or mobile app.
+</Warning>
+
+## Python and Go
+
+Python and Go SDKs are on their way. Until then, every endpoint page has a Python and a Go example that
+calls the API directly.
+
+## Upgrading from osintcat 1.x
+
+Versions 1.x of the npm package were an older client that no longer works with the API. Version 2 is
+the SDK described here; install it with `npm install osintcat@latest`.
