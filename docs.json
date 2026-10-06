@@ -126,7 +126,7 @@
     "primary": {
       "type": "button",
       "label": "Get API Key",
-      "href": "https://www.osintcat.net/account?tab=developer"
+      "href": "https://www.osintcat.net/account/developer"
     }
   },
   "contextual": {
