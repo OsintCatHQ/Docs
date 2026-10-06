@@ -40,7 +40,7 @@ print("Plan:", data["account_info"]["plan"])
 print("Lookups left today:", data["usage"]["requests_remaining_today"])
 ```
 
-```javascript Node.js
+```javascript JS & TS
 const response = await fetch("https://www.osintcat.net/api/user", {
   headers: { "X-API-KEY": "YOUR_API_KEY" },
 });
@@ -60,6 +60,33 @@ $data = json_decode(curl_exec($curl), true);
 curl_close($curl);
 echo "Plan: " . $data["account_info"]["plan"] . "\n";
 echo "Lookups left today: " . $data["usage"]["requests_remaining_today"] . "\n";
+```
+
+```go Go
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+    "net/http"
+)
+
+func main() {
+    req, _ := http.NewRequest("GET", "https://www.osintcat.net/api/user", nil)
+    req.Header.Set("X-API-KEY", "YOUR_API_KEY")
+    resp, err := http.DefaultClient.Do(req)
+    if err != nil {
+        panic(err)
+    }
+    defer resp.Body.Close()
+    var data struct {
+        AccountInfo struct{ Plan string `json:"plan"` } `json:"account_info"`
+        Usage       struct{ Left int `json:"requests_remaining_today"` } `json:"usage"`
+    }
+    json.NewDecoder(resp.Body).Decode(&data)
+    fmt.Println("Plan:", data.AccountInfo.Plan)
+    fmt.Println("Lookups left today:", data.Usage.Left)
+}
 ```
 </CodeGroup>
 
@@ -103,14 +130,134 @@ else:
     print(result["results_count"], "records; lookups left:", result["_meta"]["lookups_left"])
 ```
 
-```javascript Node.js
+```javascript JS & TS
 const url = new URL("https://www.osintcat.net/api/breach");
 url.searchParams.set("query", "user@example.com");
 const response = await fetch(url, { headers: { "X-API-KEY": "YOUR_API_KEY" } });
 const result = await response.json();
 console.log(response.status, result.results_count, result._meta);
 ```
+
+```php PHP
+<?php
+$curl = curl_init("https://www.osintcat.net/api/breach?" . http_build_query(["query" => "user@example.com"]));
+curl_setopt_array($curl, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => ["X-API-KEY: YOUR_API_KEY"],
+    CURLOPT_TIMEOUT => 60,
+]);
+$result = json_decode(curl_exec($curl), true);
+$status = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+curl_close($curl);
+if ($status === 429) {
+    echo "Slow down or wait for tomorrow's allowance\n";
+} else {
+    echo $result["results_count"] . " records; lookups left: " . $result["_meta"]["lookups_left"] . "\n";
+}
+```
+
+```go Go
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+    "net/http"
+    "net/url"
+)
+
+func main() {
+    req, _ := http.NewRequest("GET", "https://www.osintcat.net/api/breach?query="+url.QueryEscape("user@example.com"), nil)
+    req.Header.Set("X-API-KEY", "YOUR_API_KEY")
+    resp, err := http.DefaultClient.Do(req)
+    if err != nil {
+        panic(err)
+    }
+    defer resp.Body.Close()
+    if resp.StatusCode == 429 {
+        fmt.Println("Slow down or wait for tomorrow's allowance")
+        return
+    }
+    var result struct {
+        Count int `json:"results_count"`
+        Meta  struct{ LookupsLeft any `json:"lookups_left"` } `json:"_meta"`
+    }
+    json.NewDecoder(resp.Body).Decode(&result)
+    fmt.Println(result.Count, "records; lookups left:", result.Meta.LookupsLeft)
+}
+```
 </CodeGroup>
+
+## Prefer an SDK?
+
+The [official SDKs](/sdks) send the key for you, read it from the `OSINTCAT_API_KEY` environment variable, and give every answer and error a type. The same lookup:
+
+<CodeGroup>
+```typescript JS & TS
+import { OsintCatClient } from "osintcat";
+
+const client = new OsintCatClient(); // reads OSINTCAT_API_KEY
+
+const result = await client.breach.search({
+    query: "user@example.com"
+});
+console.log(result);
+```
+
+```python Python
+from osintcat import OsintCat
+
+client = OsintCat()  # reads OSINTCAT_API_KEY
+
+result = client.breach.search(
+    query="user@example.com",
+)
+print(result)
+```
+
+```go Go
+package main
+
+import (
+	"context"
+	"fmt"
+
+	osintcat "github.com/OsintCatHQ/osintcat-go"
+	osintcatclient "github.com/OsintCatHQ/osintcat-go/client"
+)
+
+func main() {
+	client := osintcatclient.NewClient() // reads OSINTCAT_API_KEY
+	request := &osintcat.SearchBreachRequest{
+		Query: "user@example.com",
+	}
+	result, err := client.Breach.Search(context.Background(), request)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%+v\n", result)
+}
+```
+
+```php PHP
+<?php
+require __DIR__ . '/vendor/autoload.php';
+
+use OsintCat\OsintCatClient;
+use OsintCat\Breach\Requests\SearchBreachRequest;
+
+$client = new OsintCatClient(); // reads OSINTCAT_API_KEY
+
+$result = $client->breach->search(
+    new SearchBreachRequest([
+        'query' => 'user@example.com',
+    ]),
+);
+echo json_encode($result, JSON_PRETTY_PRINT), PHP_EOL;
+```
+</CodeGroup>
+
+[Set up an SDK step by step](/sdks).
 
 ## Good practice
 

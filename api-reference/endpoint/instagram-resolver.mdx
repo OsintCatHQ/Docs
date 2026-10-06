@@ -41,7 +41,7 @@ response = requests.get(url, params=params, headers=headers, timeout=60)
 print(response.status_code, response.json())
 ```
 
-```javascript Node.js
+```javascript JS & TS
 const response = await fetch("https://www.osintcat.net/api/instagram-resolver?link=https%3A%2F%2Fwww.instagram.com%2Freel%2FCexample%2F%3Figsh%3DMWexample", {
   headers: { "X-API-KEY": "YOUR_API_KEY" },
 });
@@ -89,7 +89,7 @@ func main() {
 The same request with the [official SDKs](/sdks). Each one reads your key from `OSINTCAT_API_KEY`.
 
 <CodeGroup>
-```typescript TypeScript
+```typescript JS & TS
 import { OsintCatClient } from "osintcat";
 
 const client = new OsintCatClient(); // reads OSINTCAT_API_KEY
