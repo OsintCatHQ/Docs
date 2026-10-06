@@ -1,343 +1,758 @@
 ---
 title: 'Machine Viewer'
-description: 'Search and explore infected machine data, file trees, and extracted information via API key'
+description: 'Search machines from stealer logs, list their files and read or download them'
 api: 'GET https://www.osintcat.net/api/machine_viewer/stats'
 ---
 
-The Machine Viewer module provides access to infected machine records stored in the OsintCat breach database.
-Search machines by name, retrieve device details, browse file trees, and download archived logs — all via API key.
+Machine Viewer holds machines from stealer logs: the files that were taken from each one, and the passwords, tokens, cookies and payment cards found in them. Search for a machine, list its files, and read or download them.
 
 <Note>
-  All Machine Viewer API endpoints use `X-API-KEY` header authentication.
-  Every Machine Viewer request counts as one lookup against your plan's daily allowance (Max: unlimited). When the allowance is used up, requests can continue at a per-lookup price charged to your balance (the module's page in the dashboard shows the price); a search that finds nothing is not charged. Machine and file IDs are UUIDs.
+  Every Machine Viewer request counts as one lookup against your plan's daily allowance (Max: unlimited). When the allowance is used up, requests can continue at a per-lookup price charged to your balance; a search that finds nothing is not charged. Machine IDs are UUIDs; file IDs are 20 characters.
 </Note>
 
 ---
 
-## Global Statistics
+## Machine Viewer statistics
 
 ```bash
 GET https://www.osintcat.net/api/machine_viewer/stats
 ```
 
-Returns total infected machine and file counts.
+How many machines, files, passwords, tokens, cookies and payment cards the Machine Viewer holds.
 
 <ParamField header="X-API-KEY" type="string" required>
-  Your API key
+  Your API key.
 </ParamField>
 
 **Response**
+
 ```json
 {
-  "total_machines": 412000,
-  "total_files": 18500000
+  "total_machines": 100000,
+  "total_files": 3000000,
+  "total_passwords": 19000000,
+  "total_unique_passwords": 13000000,
+  "total_tokens": 150000,
+  "total_cookies": 320000000,
+  "total_credit_cards": 70000000,
+  "total_size": 150000000000
 }
 ```
 
-<CodeGroup>
 ```bash cURL
 curl "https://www.osintcat.net/api/machine_viewer/stats" \
      -H "X-API-KEY: YOUR_API_KEY"
 ```
 
-```python Python
-import requests
+**SDK example**
 
-url = "https://www.osintcat.net/api/machine_viewer/stats"
-headers = {"X-API-KEY": "YOUR_API_KEY"}
+The same request with the [official SDKs](/sdks). Each one reads your key from `OSINTCAT_API_KEY`.
 
-response = requests.get(url, headers=headers)
-print(response.json())
+<CodeGroup>
+```typescript TypeScript
+import { OsintCatClient } from "osintcat";
+
+const client = new OsintCatClient(); // reads OSINTCAT_API_KEY
+
+const result = await client.machineViewer.stats();
+console.log(result);
 ```
 
-```javascript Node.js
-fetch('https://www.osintcat.net/api/machine_viewer/stats', {
-    headers: { 'X-API-KEY': 'YOUR_API_KEY' }
-}).then(r => r.json()).then(console.log);
+```python Python
+from osintcat import OsintCat
+
+client = OsintCat()  # reads OSINTCAT_API_KEY
+
+result = client.machine_viewer.stats()
+print(result)
+```
+
+```go Go
+package main
+
+import (
+	"context"
+	"fmt"
+
+	osintcatclient "github.com/OsintCatHQ/osintcat-go/client"
+)
+
+func main() {
+	client := osintcatclient.NewClient() // reads OSINTCAT_API_KEY
+	result, err := client.MachineViewer.Stats(context.Background())
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%+v\n", result)
+}
+```
+
+```php PHP
+<?php
+require __DIR__ . '/vendor/autoload.php';
+
+use OsintCat\OsintCatClient;
+
+$client = new OsintCatClient(); // reads OSINTCAT_API_KEY
+
+$result = $client->machineViewer->stats();
+echo json_encode($result, JSON_PRETTY_PRINT), PHP_EOL;
 ```
 </CodeGroup>
 
 ---
 
-## Search Machines
+## Search machines
 
 ```bash
 GET https://www.osintcat.net/api/machine_viewer/search
 ```
 
-Search for infected machines by hostname or username. Counts as one lookup.
+Searches machines by name, username, hostname or machine ID.
 
 <ParamField query="query" type="string" required>
-  The search term (hostname, username, UUID, etc.)
+  What to search for: a name, username, hostname or machine ID.
 </ParamField>
 
 <ParamField header="X-API-KEY" type="string" required>
-  Your API key
+  Your API key.
 </ParamField>
 
 **Response**
+
 ```json
 {
-  "query": "ZAEZBCAOHJNF",
+  "success": true,
+  "query": "DESKTOP",
   "total": 1,
   "machines": [
     {
       "id": "742e1f66-f449-4a6c-80d5-8f5eb8e9c2b5",
-      "name": "ZAEZBCAOHJNF",
-      "file_count": 15,
-      "total_size": 772597,
-      "imported_at": "2026-03-03T00:00:00"
+      "name": "DESKTOP-EXAMPLE",
+      "imported_at": "2026-08-17T01:30:15",
+      "country": "DE",
+      "ip": "203.0.113.7",
+      "file_count": 24,
+      "total_size": 1003638,
+      "has_passwords": true,
+      "password_count": 108,
+      "unique_password_count": 50,
+      "has_tokens": true,
+      "token_count": 6,
+      "has_cookies": true,
+      "cookie_count": 7139,
+      "has_credit_cards": false,
+      "credit_card_count": 0
     }
   ]
 }
 ```
 
-<CodeGroup>
 ```bash cURL
-curl "https://www.osintcat.net/api/machine_viewer/search?query=ZAEZBCAOHJNF" \
+curl "https://www.osintcat.net/api/machine_viewer/search?query=DESKTOP" \
      -H "X-API-KEY: YOUR_API_KEY"
 ```
 
-```python Python
-import requests
+**SDK example**
 
-url = "https://www.osintcat.net/api/machine_viewer/search"
-params = {"query": "ZAEZBCAOHJNF"}
-headers = {"X-API-KEY": "YOUR_API_KEY"}
+The same request with the [official SDKs](/sdks). Each one reads your key from `OSINTCAT_API_KEY`.
 
-response = requests.get(url, params=params, headers=headers)
-print(response.json())
+<CodeGroup>
+```typescript TypeScript
+import { OsintCatClient } from "osintcat";
+
+const client = new OsintCatClient(); // reads OSINTCAT_API_KEY
+
+const result = await client.machineViewer.search({
+    query: "DESKTOP"
+});
+console.log(result);
 ```
 
-```javascript Node.js
-fetch('https://www.osintcat.net/api/machine_viewer/search?query=ZAEZBCAOHJNF', {
-    headers: { 'X-API-KEY': 'YOUR_API_KEY' }
-}).then(r => r.json()).then(console.log);
+```python Python
+from osintcat import OsintCat
+
+client = OsintCat()  # reads OSINTCAT_API_KEY
+
+result = client.machine_viewer.search(
+    query="DESKTOP",
+)
+print(result)
+```
+
+```go Go
+package main
+
+import (
+	"context"
+	"fmt"
+
+	osintcat "github.com/OsintCatHQ/osintcat-go"
+	osintcatclient "github.com/OsintCatHQ/osintcat-go/client"
+)
+
+func main() {
+	client := osintcatclient.NewClient() // reads OSINTCAT_API_KEY
+	request := &osintcat.SearchMachineViewerRequest{
+		Query: "DESKTOP",
+	}
+	result, err := client.MachineViewer.Search(context.Background(), request)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%+v\n", result)
+}
+```
+
+```php PHP
+<?php
+require __DIR__ . '/vendor/autoload.php';
+
+use OsintCat\OsintCatClient;
+use OsintCat\MachineViewer\Requests\SearchMachineViewerRequest;
+
+$client = new OsintCatClient(); // reads OSINTCAT_API_KEY
+
+$result = $client->machineViewer->search(
+    new SearchMachineViewerRequest([
+        'query' => 'DESKTOP',
+    ]),
+);
+echo json_encode($result, JSON_PRETTY_PRINT), PHP_EOL;
 ```
 </CodeGroup>
 
 ---
 
-## Get Machine Info
+## Machine details
 
 ```bash
 GET https://www.osintcat.net/api/machine_viewer/machines/{machine_id}/info
 ```
 
-Returns full device identity, extracted email addresses, and Discord tokens.
+One machine, with the e-mail addresses and tokens found on it.
 
 <ParamField path="machine_id" type="string" required>
-  The UUID of the machine (from Search response)
+  Machine ID (a UUID), from `machineViewer.search`.
 </ParamField>
 
 <ParamField header="X-API-KEY" type="string" required>
-  Your API key
+  Your API key.
 </ParamField>
 
 **Response**
+
 ```json
 {
+  "success": true,
   "machine": {
     "id": "742e1f66-f449-4a6c-80d5-8f5eb8e9c2b5",
-    "name": "ZAEZBCAOHJNF",
-    "file_count": 15,
-    "total_size": 772597,
-    "imported_at": "2026-03-03T00:00:00"
+    "name": "DESKTOP-EXAMPLE",
+    "imported_at": "2026-08-17T01:30:15",
+    "country": "DE",
+    "ip": "203.0.113.7",
+    "file_count": 24,
+    "total_size": 1003638,
+    "has_passwords": true,
+    "password_count": 108,
+    "unique_password_count": 50,
+    "has_tokens": true,
+    "token_count": 6,
+    "has_cookies": true,
+    "cookie_count": 7139,
+    "has_credit_cards": false,
+    "credit_card_count": 0
   },
-  "emails": ["user@example.com", "admin@test.org"],
-  "tokens": ["MTA5NDI3MzI2NTQ2NDAyNTYy.XXXXX.YYYYY"]
+  "emails": [
+    "user@example.com"
+  ],
+  "tokens": [
+    "example-token"
+  ]
 }
 ```
 
-<CodeGroup>
 ```bash cURL
-curl "https://www.osintcat.net/api/machine_viewer/machines/742e1f66-.../info" \
+curl "https://www.osintcat.net/api/machine_viewer/machines/742e1f66-f449-4a6c-80d5-8f5eb8e9c2b5/info" \
      -H "X-API-KEY: YOUR_API_KEY"
 ```
 
+**SDK example**
+
+The same request with the [official SDKs](/sdks). Each one reads your key from `OSINTCAT_API_KEY`.
+
+<CodeGroup>
+```typescript TypeScript
+import { OsintCatClient } from "osintcat";
+
+const client = new OsintCatClient(); // reads OSINTCAT_API_KEY
+
+const result = await client.machineViewer.machine({
+    machine_id: "742e1f66-f449-4a6c-80d5-8f5eb8e9c2b5"
+});
+console.log(result);
+```
+
 ```python Python
-import requests
+from osintcat import OsintCat
 
-machine_id = "742e1f66-f449-4a6c-80d5-8f5eb8e9c2b5"
-url = f"https://www.osintcat.net/api/machine_viewer/machines/{machine_id}/info"
-headers = {"X-API-KEY": "YOUR_API_KEY"}
+client = OsintCat()  # reads OSINTCAT_API_KEY
 
-response = requests.get(url, headers=headers)
-print(response.json())
+result = client.machine_viewer.machine(
+    machine_id="742e1f66-f449-4a6c-80d5-8f5eb8e9c2b5",
+)
+print(result)
+```
+
+```go Go
+package main
+
+import (
+	"context"
+	"fmt"
+
+	osintcat "github.com/OsintCatHQ/osintcat-go"
+	osintcatclient "github.com/OsintCatHQ/osintcat-go/client"
+)
+
+func main() {
+	client := osintcatclient.NewClient() // reads OSINTCAT_API_KEY
+	request := &osintcat.MachineMachineViewerRequest{
+		MachineID: "742e1f66-f449-4a6c-80d5-8f5eb8e9c2b5",
+	}
+	result, err := client.MachineViewer.Machine(context.Background(), request)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%+v\n", result)
+}
+```
+
+```php PHP
+<?php
+require __DIR__ . '/vendor/autoload.php';
+
+use OsintCat\OsintCatClient;
+
+$client = new OsintCatClient(); // reads OSINTCAT_API_KEY
+
+$result = $client->machineViewer->machine(
+    '742e1f66-f449-4a6c-80d5-8f5eb8e9c2b5',
+);
+echo json_encode($result, JSON_PRETTY_PRINT), PHP_EOL;
 ```
 </CodeGroup>
 
 ---
 
-## Get File Tree
+## Machine files
 
 ```bash
 GET https://www.osintcat.net/api/machine_viewer/machines/{machine_id}/files/treeview
 ```
 
-Returns a nested directory/file tree for a machine.
+Every file of a machine, with its path and size. Use a file's `id` with `machineViewer.file`.
 
 <ParamField path="machine_id" type="string" required>
-  The UUID of the machine
+  Machine ID (a UUID), from `machineViewer.search`.
+</ParamField>
+
+<ParamField header="X-API-KEY" type="string" required>
+  Your API key.
 </ParamField>
 
 **Response**
+
 ```json
 {
-  "machine": "ZAEZBCAOHJNF",
-  "total_files": 15,
+  "success": true,
   "tree": [
     {
-      "name": "passwords",
-      "type": "directory",
-      "children": [
-        { "name": "chrome.txt", "type": "file", "id": "abc123", "size": 1024 }
-      ]
+      "id": "aB3dE5fG7hI9jK1lM3nO",
+      "name": "Passwords.txt",
+      "path": "Browsers/Chrome/Passwords.txt",
+      "size": 4096,
+      "type": "file",
+      "is_password_file": true,
+      "is_token_file": false
     }
   ]
 }
 ```
 
-<CodeGroup>
 ```bash cURL
-curl "https://www.osintcat.net/api/machine_viewer/machines/742e1f66-.../files/treeview" \
+curl "https://www.osintcat.net/api/machine_viewer/machines/742e1f66-f449-4a6c-80d5-8f5eb8e9c2b5/files/treeview" \
      -H "X-API-KEY: YOUR_API_KEY"
 ```
 
+**SDK example**
+
+The same request with the [official SDKs](/sdks). Each one reads your key from `OSINTCAT_API_KEY`.
+
+<CodeGroup>
+```typescript TypeScript
+import { OsintCatClient } from "osintcat";
+
+const client = new OsintCatClient(); // reads OSINTCAT_API_KEY
+
+const result = await client.machineViewer.files({
+    machine_id: "742e1f66-f449-4a6c-80d5-8f5eb8e9c2b5"
+});
+console.log(result);
+```
+
 ```python Python
-import requests
+from osintcat import OsintCat
 
-machine_id = "742e1f66-f449-4a6c-80d5-8f5eb8e9c2b5"
-url = f"https://www.osintcat.net/api/machine_viewer/machines/{machine_id}/files/treeview"
-headers = {"X-API-KEY": "YOUR_API_KEY"}
+client = OsintCat()  # reads OSINTCAT_API_KEY
 
-response = requests.get(url, headers=headers)
-print(response.json())
+result = client.machine_viewer.files(
+    machine_id="742e1f66-f449-4a6c-80d5-8f5eb8e9c2b5",
+)
+print(result)
+```
+
+```go Go
+package main
+
+import (
+	"context"
+	"fmt"
+
+	osintcat "github.com/OsintCatHQ/osintcat-go"
+	osintcatclient "github.com/OsintCatHQ/osintcat-go/client"
+)
+
+func main() {
+	client := osintcatclient.NewClient() // reads OSINTCAT_API_KEY
+	request := &osintcat.FilesMachineViewerRequest{
+		MachineID: "742e1f66-f449-4a6c-80d5-8f5eb8e9c2b5",
+	}
+	result, err := client.MachineViewer.Files(context.Background(), request)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%+v\n", result)
+}
+```
+
+```php PHP
+<?php
+require __DIR__ . '/vendor/autoload.php';
+
+use OsintCat\OsintCatClient;
+
+$client = new OsintCatClient(); // reads OSINTCAT_API_KEY
+
+$result = $client->machineViewer->files(
+    '742e1f66-f449-4a6c-80d5-8f5eb8e9c2b5',
+);
+echo json_encode($result, JSON_PRETTY_PRINT), PHP_EOL;
 ```
 </CodeGroup>
 
 ---
 
-## Get File Info & Content
+## File content
 
 ```bash
 GET https://www.osintcat.net/api/machine_viewer/files/{file_id}/info
 ```
 
-Returns metadata and text content of a single file. The `file_id` comes from the file tree response.
+One file, with its content as text.
 
 <ParamField path="file_id" type="string" required>
-  The UUID of the file (from File Tree response)
+  File ID, from `machineViewer.files`.
+</ParamField>
+
+<ParamField header="X-API-KEY" type="string" required>
+  Your API key.
 </ParamField>
 
 **Response**
+
 ```json
 {
-  "id": "abc123",
-  "filename": "chrome.txt",
-  "path": "passwords/chrome.txt",
-  "size": 1024,
-  "content": "URL: https://example.com\nUsername: user@gmail.com\nPassword: ..."
+  "success": true,
+  "info": {
+    "id": "aB3dE5fG7hI9jK1lM3nO",
+    "machine_id": "742e1f66-f449-4a6c-80d5-8f5eb8e9c2b5",
+    "machine_name": "DESKTOP-EXAMPLE",
+    "path": "Browsers/Chrome/Passwords.txt",
+    "filename": "Passwords.txt",
+    "size": 4096,
+    "content": "URL: https://example.com/login\nUsername: user@example.com\nPassword: hunter2",
+    "is_password_file": true,
+    "is_token_file": false
+  }
 }
 ```
 
-<CodeGroup>
 ```bash cURL
-curl "https://www.osintcat.net/api/machine_viewer/files/abc123/info" \
+curl "https://www.osintcat.net/api/machine_viewer/files/aB3dE5fG7hI9jK1lM3nO/info" \
      -H "X-API-KEY: YOUR_API_KEY"
 ```
 
+**SDK example**
+
+The same request with the [official SDKs](/sdks). Each one reads your key from `OSINTCAT_API_KEY`.
+
+<CodeGroup>
+```typescript TypeScript
+import { OsintCatClient } from "osintcat";
+
+const client = new OsintCatClient(); // reads OSINTCAT_API_KEY
+
+const result = await client.machineViewer.file({
+    file_id: "aB3dE5fG7hI9jK1lM3nO"
+});
+console.log(result);
+```
+
 ```python Python
-import requests
+from osintcat import OsintCat
 
-file_id = "abc123"
-url = f"https://www.osintcat.net/api/machine_viewer/files/{file_id}/info"
-headers = {"X-API-KEY": "YOUR_API_KEY"}
+client = OsintCat()  # reads OSINTCAT_API_KEY
 
-response = requests.get(url, headers=headers)
-print(response.json())
+result = client.machine_viewer.file(
+    file_id="aB3dE5fG7hI9jK1lM3nO",
+)
+print(result)
+```
+
+```go Go
+package main
+
+import (
+	"context"
+	"fmt"
+
+	osintcat "github.com/OsintCatHQ/osintcat-go"
+	osintcatclient "github.com/OsintCatHQ/osintcat-go/client"
+)
+
+func main() {
+	client := osintcatclient.NewClient() // reads OSINTCAT_API_KEY
+	request := &osintcat.FileMachineViewerRequest{
+		FileID: "aB3dE5fG7hI9jK1lM3nO",
+	}
+	result, err := client.MachineViewer.File(context.Background(), request)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%+v\n", result)
+}
+```
+
+```php PHP
+<?php
+require __DIR__ . '/vendor/autoload.php';
+
+use OsintCat\OsintCatClient;
+
+$client = new OsintCatClient(); // reads OSINTCAT_API_KEY
+
+$result = $client->machineViewer->file(
+    'aB3dE5fG7hI9jK1lM3nO',
+);
+echo json_encode($result, JSON_PRETTY_PRINT), PHP_EOL;
 ```
 </CodeGroup>
 
 ---
 
-## Download Single File
+## Download a file
 
 ```bash
 GET https://www.osintcat.net/api/machine_viewer/files/{file_id}/download
 ```
 
-Downloads the raw content of a single file as `application/octet-stream`.
+The file itself, as it was in the log.
 
 <ParamField path="file_id" type="string" required>
-  The UUID of the file
+  File ID, from `machineViewer.files`.
 </ParamField>
 
-<CodeGroup>
+<ParamField header="X-API-KEY" type="string" required>
+  Your API key.
+</ParamField>
+
+**Response:** the file itself (`application/octet-stream`).
+
 ```bash cURL
-curl -O -J "https://www.osintcat.net/api/machine_viewer/files/abc123/download" \
-     -H "X-API-KEY: YOUR_API_KEY"
+curl "https://www.osintcat.net/api/machine_viewer/files/aB3dE5fG7hI9jK1lM3nO/download" \
+     -H "X-API-KEY: YOUR_API_KEY" -o file
+```
+
+**SDK example**
+
+The same request with the [official SDKs](/sdks). Each one reads your key from `OSINTCAT_API_KEY`.
+
+<CodeGroup>
+```typescript TypeScript
+import { OsintCatClient } from "osintcat";
+
+const client = new OsintCatClient(); // reads OSINTCAT_API_KEY
+
+const response = await client.machineViewer.downloadFile({
+    file_id: "aB3dE5fG7hI9jK1lM3nO"
+});
+const file = await response.arrayBuffer();
+console.log(file.byteLength, "bytes");
 ```
 
 ```python Python
-import requests
+from osintcat import OsintCat
 
-file_id = "abc123"
-url = f"https://www.osintcat.net/api/machine_viewer/files/{file_id}/download"
-headers = {"X-API-KEY": "YOUR_API_KEY"}
+client = OsintCat()  # reads OSINTCAT_API_KEY
 
-response = requests.get(url, headers=headers)
-with open("file.txt", "wb") as f:
-    f.write(response.content)
+data = b"".join(client.machine_viewer.download_file(
+    file_id="aB3dE5fG7hI9jK1lM3nO",
+))
+print(len(data), "bytes")
+```
+
+```go Go
+package main
+
+import (
+	"context"
+	"fmt"
+	"io"
+
+	osintcat "github.com/OsintCatHQ/osintcat-go"
+	osintcatclient "github.com/OsintCatHQ/osintcat-go/client"
+)
+
+func main() {
+	client := osintcatclient.NewClient() // reads OSINTCAT_API_KEY
+	request := &osintcat.DownloadFileMachineViewerRequest{
+		FileID: "aB3dE5fG7hI9jK1lM3nO",
+	}
+	result, err := client.MachineViewer.DownloadFile(context.Background(), request)
+	if err != nil {
+		panic(err)
+	}
+	data, err := io.ReadAll(result)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(len(data), "bytes")
+}
+```
+
+```php PHP
+<?php
+require __DIR__ . '/vendor/autoload.php';
+
+use OsintCat\OsintCatClient;
+
+$client = new OsintCatClient(); // reads OSINTCAT_API_KEY
+
+$result = $client->machineViewer->downloadFile(
+    'aB3dE5fG7hI9jK1lM3nO',
+);
+echo strlen($result), " bytes", PHP_EOL;
 ```
 </CodeGroup>
 
 ---
 
-## Download Machine Archive
+## Download a machine
 
 ```bash
 GET https://www.osintcat.net/api/machine_viewer/machines/{machine_id}/download
 ```
 
-Downloads all files for a machine as a `.zip` archive.
+Every file of a machine in one ZIP archive.
 
 <ParamField path="machine_id" type="string" required>
-  The UUID of the machine
+  Machine ID (a UUID), from `machineViewer.search`.
 </ParamField>
 
-Returns `application/zip` named `{machine_name}_export.zip`.
+<ParamField header="X-API-KEY" type="string" required>
+  Your API key.
+</ParamField>
+
+**Response:** the file itself (`application/zip`).
+
+```bash cURL
+curl "https://www.osintcat.net/api/machine_viewer/machines/742e1f66-f449-4a6c-80d5-8f5eb8e9c2b5/download" \
+     -H "X-API-KEY: YOUR_API_KEY" -o machine.zip
+```
+
+**SDK example**
+
+The same request with the [official SDKs](/sdks). Each one reads your key from `OSINTCAT_API_KEY`.
 
 <CodeGroup>
-```bash cURL
-curl -O -J "https://www.osintcat.net/api/machine_viewer/machines/742e1f66-.../download" \
-     -H "X-API-KEY: YOUR_API_KEY"
+```typescript TypeScript
+import { OsintCatClient } from "osintcat";
+
+const client = new OsintCatClient(); // reads OSINTCAT_API_KEY
+
+const response = await client.machineViewer.downloadMachine({
+    machine_id: "742e1f66-f449-4a6c-80d5-8f5eb8e9c2b5"
+});
+const file = await response.arrayBuffer();
+console.log(file.byteLength, "bytes");
 ```
 
 ```python Python
-import requests
+from osintcat import OsintCat
 
-machine_id = "742e1f66-f449-4a6c-80d5-8f5eb8e9c2b5"
-url = f"https://www.osintcat.net/api/machine_viewer/machines/{machine_id}/download"
-headers = {"X-API-KEY": "YOUR_API_KEY"}
+client = OsintCat()  # reads OSINTCAT_API_KEY
 
-response = requests.get(url, headers=headers)
-with open("machine_export.zip", "wb") as f:
-    f.write(response.content)
-print(f"Downloaded {len(response.content)} bytes")
+data = b"".join(client.machine_viewer.download_machine(
+    machine_id="742e1f66-f449-4a6c-80d5-8f5eb8e9c2b5",
+))
+print(len(data), "bytes")
 ```
 
-```javascript Node.js
-const fs = require('fs');
-const https = require('https');
+```go Go
+package main
 
-const machine_id = '742e1f66-f449-4a6c-80d5-8f5eb8e9c2b5';
-const url = `https://www.osintcat.net/api/machine_viewer/machines/${machine_id}/download`;
+import (
+	"context"
+	"fmt"
+	"io"
 
-const file = fs.createWriteStream('machine_export.zip');
-https.get(url, { headers: { 'X-API-KEY': 'YOUR_API_KEY' } }, res => {
-    res.pipe(file);
-    file.on('finish', () => file.close(() => console.log('Downloaded!')));
-});
+	osintcat "github.com/OsintCatHQ/osintcat-go"
+	osintcatclient "github.com/OsintCatHQ/osintcat-go/client"
+)
+
+func main() {
+	client := osintcatclient.NewClient() // reads OSINTCAT_API_KEY
+	request := &osintcat.DownloadMachineMachineViewerRequest{
+		MachineID: "742e1f66-f449-4a6c-80d5-8f5eb8e9c2b5",
+	}
+	result, err := client.MachineViewer.DownloadMachine(context.Background(), request)
+	if err != nil {
+		panic(err)
+	}
+	data, err := io.ReadAll(result)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(len(data), "bytes")
+}
+```
+
+```php PHP
+<?php
+require __DIR__ . '/vendor/autoload.php';
+
+use OsintCat\OsintCatClient;
+
+$client = new OsintCatClient(); // reads OSINTCAT_API_KEY
+
+$result = $client->machineViewer->downloadMachine(
+    '742e1f66-f449-4a6c-80d5-8f5eb8e9c2b5',
+);
+echo strlen($result), " bytes", PHP_EOL;
 ```
 </CodeGroup>
+
+---
+
+See [Errors](/api-reference/introduction#errors) for the responses every endpoint can return. An ID that is not valid is answered with `400`, an unknown one with `404 NOT_FOUND`.

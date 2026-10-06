@@ -84,6 +84,75 @@ func main() {
 ```
 </RequestExample>
 
+## SDK example
+
+The same request with the [official SDKs](/sdks). Each one reads your key from `OSINTCAT_API_KEY`.
+
+<CodeGroup>
+```typescript TypeScript
+import { OsintCatClient } from "osintcat";
+
+const client = new OsintCatClient(); // reads OSINTCAT_API_KEY
+
+const result = await client.twitch.profile({
+    username: "xqc"
+});
+console.log(result);
+```
+
+```python Python
+from osintcat import OsintCat
+
+client = OsintCat()  # reads OSINTCAT_API_KEY
+
+result = client.twitch.profile(
+    username="xqc",
+)
+print(result)
+```
+
+```go Go
+package main
+
+import (
+	"context"
+	"fmt"
+
+	osintcat "github.com/OsintCatHQ/osintcat-go"
+	osintcatclient "github.com/OsintCatHQ/osintcat-go/client"
+)
+
+func main() {
+	client := osintcatclient.NewClient() // reads OSINTCAT_API_KEY
+	request := &osintcat.ProfileTwitchRequest{
+		Username: "xqc",
+	}
+	result, err := client.Twitch.Profile(context.Background(), request)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%+v\n", result)
+}
+```
+
+```php PHP
+<?php
+require __DIR__ . '/vendor/autoload.php';
+
+use OsintCat\OsintCatClient;
+use OsintCat\Twitch\Requests\ProfileTwitchRequest;
+
+$client = new OsintCatClient(); // reads OSINTCAT_API_KEY
+
+$result = $client->twitch->profile(
+    new ProfileTwitchRequest([
+        'username' => 'xqc',
+    ]),
+);
+echo json_encode($result, JSON_PRETTY_PRINT), PHP_EOL;
+```
+</CodeGroup>
+
 ## Response
 
 `taken` is `true` when the account exists. `ExtraData` holds what the profile shows publicly; a field the profile does not have is left out. When the lookup could not be completed, `taken` is `false` and `error` says why (for example `rate_limited`, try again later).

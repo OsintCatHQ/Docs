@@ -84,6 +84,75 @@ func main() {
 ```
 </RequestExample>
 
+## SDK example
+
+The same request with the [official SDKs](/sdks). Each one reads your key from `OSINTCAT_API_KEY`.
+
+<CodeGroup>
+```typescript TypeScript
+import { OsintCatClient } from "osintcat";
+
+const client = new OsintCatClient(); // reads OSINTCAT_API_KEY
+
+const result = await client.breach.domain({
+    query: "example.com"
+});
+console.log(result);
+```
+
+```python Python
+from osintcat import OsintCat
+
+client = OsintCat()  # reads OSINTCAT_API_KEY
+
+result = client.breach.domain(
+    query="example.com",
+)
+print(result)
+```
+
+```go Go
+package main
+
+import (
+	"context"
+	"fmt"
+
+	osintcat "github.com/OsintCatHQ/osintcat-go"
+	osintcatclient "github.com/OsintCatHQ/osintcat-go/client"
+)
+
+func main() {
+	client := osintcatclient.NewClient() // reads OSINTCAT_API_KEY
+	request := &osintcat.DomainBreachRequest{
+		Query: "example.com",
+	}
+	result, err := client.Breach.Domain(context.Background(), request)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%+v\n", result)
+}
+```
+
+```php PHP
+<?php
+require __DIR__ . '/vendor/autoload.php';
+
+use OsintCat\OsintCatClient;
+use OsintCat\Breach\Requests\DomainBreachRequest;
+
+$client = new OsintCatClient(); // reads OSINTCAT_API_KEY
+
+$result = $client->breach->domain(
+    new DomainBreachRequest([
+        'query' => 'example.com',
+    ]),
+);
+echo json_encode($result, JSON_PRETTY_PRINT), PHP_EOL;
+```
+</CodeGroup>
+
 ## Response
 
 An array of breach records. The fields of a record depend on the breach it comes from.

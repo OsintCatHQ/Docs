@@ -88,6 +88,80 @@ func main() {
 ```
 </RequestExample>
 
+## SDK example
+
+The same request with the [official SDKs](/sdks). Each one reads your key from `OSINTCAT_API_KEY`.
+
+<CodeGroup>
+```typescript TypeScript
+import { OsintCatClient } from "osintcat";
+
+const client = new OsintCatClient(); // reads OSINTCAT_API_KEY
+
+const result = await client.minecraft.leaks({
+    query: "Notch",
+    type: "username"
+});
+console.log(result);
+```
+
+```python Python
+from osintcat import OsintCat
+
+client = OsintCat()  # reads OSINTCAT_API_KEY
+
+result = client.minecraft.leaks(
+    query="Notch",
+    query_type="username",
+)
+print(result)
+```
+
+```go Go
+package main
+
+import (
+	"context"
+	"fmt"
+
+	osintcat "github.com/OsintCatHQ/osintcat-go"
+	osintcatclient "github.com/OsintCatHQ/osintcat-go/client"
+)
+
+func main() {
+	client := osintcatclient.NewClient() // reads OSINTCAT_API_KEY
+	request := &osintcat.LeaksMinecraftRequest{
+		Query: "Notch",
+		QueryType: osintcat.LeaksMinecraftRequestTypeUsername,
+	}
+	result, err := client.Minecraft.Leaks(context.Background(), request)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%+v\n", result)
+}
+```
+
+```php PHP
+<?php
+require __DIR__ . '/vendor/autoload.php';
+
+use OsintCat\OsintCatClient;
+use OsintCat\Minecraft\Requests\LeaksMinecraftRequest;
+use OsintCat\Minecraft\Types\LeaksMinecraftRequestType;
+
+$client = new OsintCatClient(); // reads OSINTCAT_API_KEY
+
+$result = $client->minecraft->leaks(
+    new LeaksMinecraftRequest([
+        'query' => 'Notch',
+        'queryType' => LeaksMinecraftRequestType::Username->value,
+    ]),
+);
+echo json_encode($result, JSON_PRETTY_PRINT), PHP_EOL;
+```
+</CodeGroup>
+
 ## Response
 
 The matching leak records. Their fields depend on the server the leak comes from. Results may come from a cache for up to two days.

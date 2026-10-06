@@ -3,80 +3,92 @@ title: 'SDKs'
 description: 'Official client libraries for the OsintCat API'
 ---
 
-The official SDKs wrap every endpoint in this documentation with typed requests and responses. They send
-your key in the `X-API-KEY` header and read it from the `OSINTCAT_API_KEY` environment variable when you do
-not pass one.
+The official SDKs cover every endpoint you can use today, with typed requests and responses; endpoints marked unavailable are added when they return. They are open source (MIT) and send your key in the `X-API-KEY` header.
 
-## JavaScript and TypeScript
+<Tabs>
+<Tab title="TypeScript">
+<Steps>
+<Step title="Create an API key">
 
-Runs on Node.js 18+, Bun, Deno and Cloudflare Workers, with no dependencies.
+Under [Account → Developer](https://www.osintcat.net/account/developer), create a key. Choose its scopes and how long it works. The key is shown once: copy it.
+
+</Step>
+<Step title="Install the SDK">
+
+Node.js 18 or later, Bun, Deno or Cloudflare Workers. No dependencies.
 
 ```sh
 npm install osintcat
 ```
 
+</Step>
+<Step title="Set your key">
+
+The SDK reads the key from the `OSINTCAT_API_KEY` environment variable. Keep it out of your code, and never ship it in a browser or mobile app.
+
+<CodeGroup>
+```sh macOS / Linux
+export OSINTCAT_API_KEY="cat_..."
+```
+
+```powershell Windows
+$env:OSINTCAT_API_KEY = "cat_..."
+```
+</CodeGroup>
+
+</Step>
+<Step title="Make your first request">
+
+Save this as `first.mjs` and run `node first.mjs`. It shows your plan and how many lookups are left today.
+
+```typescript first.mjs
+import { OsintCatClient } from "osintcat";
+
+const client = new OsintCatClient(); // reads OSINTCAT_API_KEY
+
+const result = await client.account.get();
+console.log(result);
+```
+
+</Step>
+<Step title="Handle errors">
+
+Every answer other than 2xx raises an error with the status code and the answer, which names an `error_id` and a `request_id`: quote them to support. A lookup that fails is not charged.
+
 ```typescript
-import { OsintCat, OsintCatClient } from "osintcat";
+import { OsintCat, OsintCatClient, OsintCatError } from "osintcat";
 
-const client = new OsintCatClient({ apiKey: process.env.OSINTCAT_API_KEY });
-
-const account = await client.account.get();
-console.log(account.account_info?.plan, account.usage?.requests_remaining_today);
-
-const breach = await client.breach.search({ query: "user@example.com" });
-console.log(breach.results_count);
+const client = new OsintCatClient();
 
 try {
-    await client.github.profile({ username: "octocat" });
+    const result = await client.breach.search({ query: "user@example.com" });
+    console.log(result.results_count);
 } catch (err) {
     if (err instanceof OsintCat.TooManyRequestsError) {
-        // allowance used up, or slow down
+        console.log("Daily allowance used up, or too many requests: try again later.");
+    } else if (err instanceof OsintCatError) {
+        // err.body carries error, message, error_id and request_id
+        console.log(err.statusCode, err.body);
+    } else {
+        throw err;
     }
 }
 ```
 
-Every method is named after its endpoint group: `client.breach.search()`, `client.github.profile()`,
-`client.dns.resolve()`. Any answer other than 2xx throws an error with the status code and the body
-described in [Errors](/api-reference/introduction#errors).
+</Step>
+</Steps>
 
-<Note>
-  The SDK does not retry on its own. A lookup retried after a timeout may already have been counted or
-  charged, and `429 LIMIT_REACHED` cannot succeed before the allowance resets at 00:00 UTC.
-</Note>
+Every endpoint page shows its call in each language. Source and issues: [github.com/OsintCatHQ/osintcat-typescript](https://github.com/OsintCatHQ/osintcat-typescript).
 
-<Warning>
-  Keep your API key on the server. Never ship it in a browser or mobile app.
-</Warning>
+</Tab>
+<Tab title="Python">
+<Steps>
+<Step title="Create an API key">
 
-## Go
+Under [Account → Developer](https://www.osintcat.net/account/developer), create a key. Choose its scopes and how long it works. The key is shown once: copy it.
 
-Go 1.21 or later.
-
-```sh
-go get github.com/OsintCatHQ/osintcat-go
-```
-
-```go
-import (
-	"context"
-	"errors"
-	"fmt"
-
-	osintcat "github.com/OsintCatHQ/osintcat-go"
-	osintcatclient "github.com/OsintCatHQ/osintcat-go/client"
-)
-
-client := osintcatclient.NewClient() // reads OSINTCAT_API_KEY
-breach, err := client.Breach.Search(context.Background(), &osintcat.SearchBreachRequest{Query: "user@example.com"})
-var limited *osintcat.TooManyRequestsError
-if errors.As(err, &limited) {
-	// allowance used up, or slow down
-} else if err == nil {
-	fmt.Println(*breach.ResultsCount)
-}
-```
-
-## Python
+</Step>
+<Step title="Install the SDK">
 
 Python 3.10 or later. Until the SDK is on PyPI, install it from GitHub:
 
@@ -84,31 +96,253 @@ Python 3.10 or later. Until the SDK is on PyPI, install it from GitHub:
 pip install "git+https://github.com/OsintCatHQ/osintcat-python@main"
 ```
 
-```python
-from osintcat import OsintCat
-from osintcat.errors import TooManyRequestsError
+<Warning>
+  Do not `pip install osintcat` for now: that name on PyPI still holds an old client that does not work with the API.
+  </Warning>
 
-client = OsintCat()  # reads OSINTCAT_API_KEY
-try:
-    breach = client.breach.search(query="user@example.com")
-    print(breach.results_count)
-except TooManyRequestsError:
-    pass  # allowance used up, or slow down
+</Step>
+<Step title="Set your key">
+
+The SDK reads the key from the `OSINTCAT_API_KEY` environment variable. Keep it out of your code, and never ship it in a browser or mobile app.
+
+<CodeGroup>
+```sh macOS / Linux
+export OSINTCAT_API_KEY="cat_..."
 ```
 
-<Warning>
-  Do not `pip install osintcat` for now: that name on PyPI still holds an old client that does not work
-  with the API.
-</Warning>
+```powershell Windows
+$env:OSINTCAT_API_KEY = "cat_..."
+```
+</CodeGroup>
 
-## Source code
+</Step>
+<Step title="Make your first request">
 
-The SDKs are open source (MIT):
-[TypeScript](https://github.com/OsintCatHQ/osintcat-typescript),
-[Python](https://github.com/OsintCatHQ/osintcat-python),
-[Go](https://github.com/OsintCatHQ/osintcat-go).
+Save this as `first.py` and run `python first.py`. It shows your plan and how many lookups are left today.
+
+```python first.py
+from osintcat import OsintCat
+
+client = OsintCat()  # reads OSINTCAT_API_KEY
+
+result = client.account.get()
+print(result)
+```
+
+</Step>
+<Step title="Handle errors">
+
+Every answer other than 2xx raises an error with the status code and the answer, which names an `error_id` and a `request_id`: quote them to support. A lookup that fails is not charged.
+
+```python
+from osintcat import OsintCat
+from osintcat.core.api_error import ApiError
+from osintcat.errors import TooManyRequestsError
+
+client = OsintCat()
+
+try:
+    result = client.breach.search(query="user@example.com")
+    print(result.results_count)
+except TooManyRequestsError:
+    print("Daily allowance used up, or too many requests: try again later.")
+except ApiError as err:
+    # err.body carries error, message, error_id and request_id
+    print(err.status_code, err.body)
+```
+
+</Step>
+</Steps>
+
+Every endpoint page shows its call in each language. Source and issues: [github.com/OsintCatHQ/osintcat-python](https://github.com/OsintCatHQ/osintcat-python).
+
+</Tab>
+<Tab title="Go">
+<Steps>
+<Step title="Create an API key">
+
+Under [Account → Developer](https://www.osintcat.net/account/developer), create a key. Choose its scopes and how long it works. The key is shown once: copy it.
+
+</Step>
+<Step title="Install the SDK">
+
+Go 1.21 or later.
+
+```sh
+go get github.com/OsintCatHQ/osintcat-go
+```
+
+</Step>
+<Step title="Set your key">
+
+The SDK reads the key from the `OSINTCAT_API_KEY` environment variable. Keep it out of your code, and never ship it in a browser or mobile app.
+
+<CodeGroup>
+```sh macOS / Linux
+export OSINTCAT_API_KEY="cat_..."
+```
+
+```powershell Windows
+$env:OSINTCAT_API_KEY = "cat_..."
+```
+</CodeGroup>
+
+</Step>
+<Step title="Make your first request">
+
+Save this as `main.go` and run `go run .`. It shows your plan and how many lookups are left today.
+
+```go main.go
+package main
+
+import (
+	"context"
+	"fmt"
+
+	osintcatclient "github.com/OsintCatHQ/osintcat-go/client"
+)
+
+func main() {
+	client := osintcatclient.NewClient() // reads OSINTCAT_API_KEY
+	result, err := client.Account.Get(context.Background())
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%+v\n", result)
+}
+```
+
+</Step>
+<Step title="Handle errors">
+
+Every answer other than 2xx raises an error with the status code and the answer, which names an `error_id` and a `request_id`: quote them to support. A lookup that fails is not charged.
+
+```go
+package main
+
+import (
+	"context"
+	"errors"
+	"fmt"
+
+	osintcat "github.com/OsintCatHQ/osintcat-go"
+	osintcatclient "github.com/OsintCatHQ/osintcat-go/client"
+	"github.com/OsintCatHQ/osintcat-go/core"
+)
+
+func main() {
+	client := osintcatclient.NewClient()
+	result, err := client.Breach.Search(context.Background(), &osintcat.SearchBreachRequest{Query: "user@example.com"})
+	var limited *osintcat.TooManyRequestsError
+	var apiErr *core.APIError
+	switch {
+	case errors.As(err, &limited):
+		fmt.Println("Daily allowance used up, or too many requests: try again later.")
+	case errors.As(err, &apiErr):
+		// the error text carries the answer: error, message, error_id and request_id
+		fmt.Println(apiErr.StatusCode, err)
+	case err != nil:
+		panic(err)
+	default:
+		fmt.Println(*result.ResultsCount)
+	}
+}
+```
+
+</Step>
+</Steps>
+
+Every endpoint page shows its call in each language. Source and issues: [github.com/OsintCatHQ/osintcat-go](https://github.com/OsintCatHQ/osintcat-go).
+
+</Tab>
+<Tab title="PHP">
+<Steps>
+<Step title="Create an API key">
+
+Under [Account → Developer](https://www.osintcat.net/account/developer), create a key. Choose its scopes and how long it works. The key is shown once: copy it.
+
+</Step>
+<Step title="Install the SDK">
+
+PHP 8.1 or later. The SDK sends requests through any PSR-18 HTTP client, such as Guzzle. Until it is listed on Packagist, tell Composer where it is first:
+
+```sh
+composer config repositories.osintcat vcs https://github.com/OsintCatHQ/osintcat-php
+composer require osintcat/osintcat-php guzzlehttp/guzzle
+```
+
+</Step>
+<Step title="Set your key">
+
+The SDK reads the key from the `OSINTCAT_API_KEY` environment variable. Keep it out of your code, and never ship it in a browser or mobile app.
+
+<CodeGroup>
+```sh macOS / Linux
+export OSINTCAT_API_KEY="cat_..."
+```
+
+```powershell Windows
+$env:OSINTCAT_API_KEY = "cat_..."
+```
+</CodeGroup>
+
+</Step>
+<Step title="Make your first request">
+
+Save this as `first.php` and run `php first.php`. It shows your plan and how many lookups are left today.
+
+```php first.php
+<?php
+require __DIR__ . '/vendor/autoload.php';
+
+use OsintCat\OsintCatClient;
+
+$client = new OsintCatClient(); // reads OSINTCAT_API_KEY
+
+$result = $client->account->get();
+echo json_encode($result, JSON_PRETTY_PRINT), PHP_EOL;
+```
+
+</Step>
+<Step title="Handle errors">
+
+Every answer other than 2xx raises an error with the status code and the answer, which names an `error_id` and a `request_id`: quote them to support. A lookup that fails is not charged.
+
+```php
+<?php
+require __DIR__ . '/vendor/autoload.php';
+
+use OsintCat\OsintCatClient;
+use OsintCat\Breach\Requests\SearchBreachRequest;
+use OsintCat\Exceptions\OsintcatApiException;
+
+$client = new OsintCatClient();
+
+try {
+    $result = $client->breach->search(new SearchBreachRequest(['query' => 'user@example.com']));
+    echo $result->resultsCount, PHP_EOL;
+} catch (OsintcatApiException $e) {
+    if ($e->getCode() === 429) {
+        echo 'Daily allowance used up, or too many requests: try again later.', PHP_EOL;
+    } else {
+        // the body carries error, message, error_id and request_id
+        echo $e->getCode(), ' ', json_encode($e->getBody()), PHP_EOL;
+    }
+}
+```
+
+</Step>
+</Steps>
+
+Every endpoint page shows its call in each language. Source and issues: [github.com/OsintCatHQ/osintcat-php](https://github.com/OsintCatHQ/osintcat-php).
+
+</Tab>
+</Tabs>
+
+## Retries and timeouts
+
+The SDKs do not retry on their own. A lookup retried after a timeout may already have been counted or charged, and `429 LIMIT_REACHED` cannot succeed before the allowance resets at 00:00 UTC, so you decide when to try again. TypeScript and Python requests time out after 60 seconds; in Go pass a context with a deadline, and in PHP set `timeout` in the client options.
 
 ## Upgrading from osintcat 1.x
 
-Versions 1.x of the npm package were an older client that no longer works with the API. Version 2 is
-the SDK described here; install it with `npm install osintcat@latest`.
+Versions 1.x of the npm package were an older client that no longer works with the API. Version 2 is the SDK described here: `npm install osintcat@latest`.
