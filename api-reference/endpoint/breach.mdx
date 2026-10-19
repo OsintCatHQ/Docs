@@ -1,10 +1,10 @@
 ---
 title: 'Breach Lookup'
 api: 'GET https://www.osintcat.net/api/breach'
-description: 'Search breach and leak indexes for an e-mail, username, phone, IP or password'
+description: 'Search breach and leak indexes for an e-mail, username, IP or password'
 ---
 
-Searches the breach indexes (including Snusbase, LeakCheck and IntelX) for a value and returns every matching record. The search is case-insensitive.
+Searches the breach indexes for a value and returns every matching record. The search is case-insensitive.
 
 <Note>
   Results for the same query may come from a cache for up to two days.
@@ -13,7 +13,7 @@ Searches the breach indexes (including Snusbase, LeakCheck and IntelX) for a val
 ## Parameters
 
 <ParamField query="query" type="string" required>
-  What to search for: an e-mail address, username, domain, phone number, IP address, name or password.
+  What to search for: an e-mail address, username, domain, IP address, name or password.
 </ParamField>
 
 ## Headers

@@ -44,7 +44,6 @@
             "pages": [
               "api-reference/endpoint/breach",
               "api-reference/endpoint/database-search",
-              "api-reference/endpoint/domain",
               "api-reference/endpoint/discord"
             ]
           },
@@ -75,7 +74,6 @@
             "group": "Gaming",
             "pages": [
               "api-reference/endpoint/minecraft",
-              "api-reference/endpoint/minecraft-osint",
               "api-reference/endpoint/minecraft-profile",
               "api-reference/endpoint/steam",
               "api-reference/endpoint/xbox",
@@ -95,9 +93,7 @@
           {
             "group": "Vehicles & Public Records",
             "pages": [
-              "api-reference/endpoint/vin",
-              "api-reference/endpoint/chilean-name",
-              "api-reference/endpoint/chilean-car"
+              "api-reference/endpoint/vin"
             ]
           },
           {
@@ -155,6 +151,22 @@
     {
       "source": "/api-reference/endpoint/stealer-logs",
       "destination": "/api-reference/endpoint/database-search"
+    },
+    {
+      "source": "/api-reference/endpoint/domain",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/chilean-name",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/chilean-car",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/endpoint/minecraft-osint",
+      "destination": "/api-reference/endpoint/minecraft"
     }
   ]
 }
