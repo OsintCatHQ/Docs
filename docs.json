@@ -43,6 +43,7 @@
             "group": "Breach & Leak Data",
             "pages": [
               "api-reference/endpoint/breach",
+              "api-reference/endpoint/breach-search",
               "api-reference/endpoint/database-search",
               "api-reference/endpoint/discord"
             ]

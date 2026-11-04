@@ -4,16 +4,21 @@ api: 'GET https://www.osintcat.net/api/breach'
 description: 'Search breach and leak indexes for an e-mail, username, IP or password'
 ---
 
-Searches the breach indexes for a value and returns every matching record. The search is case-insensitive.
+Searches the breach indexes for a value and returns every matching record in one request. The search is case-insensitive, except for passwords and hashes.
+
+This endpoint answers with the fast sources. The deep search, which covers more sources and can take a minute or longer, runs as a job: see [Breach Search Job](/api-reference/endpoint/breach-search).
 
 <Note>
-  Results for the same query may come from a cache for up to two days.
+  Records for the same query may come from a cache for up to 72 hours. Every request is counted and charged, whether or not its records came from the cache.
 </Note>
 
 ## Parameters
 
 <ParamField query="query" type="string" required>
-  What to search for: an e-mail address, username, domain, IP address, name or password.
+  What to search for: an e-mail address, username, domain, IP address, name, phone number, hash or password.
+</ParamField>
+<ParamField query="type" type="string">
+  What `query` is: `email`, `username`, `password`, `name`, `domain`, `ip`, `hash` or `phone`. Detected from the query when left out; set it for a name or a password, which can't be told apart from a username.
 </ParamField>
 
 ## Headers
@@ -24,7 +29,7 @@ Searches the breach indexes for a value and returns every matching record. The s
 
 ## Usage
 
-Counts as one lookup against your plan's daily allowance (Max: unlimited). When the allowance is used up, the lookup can continue at a per-lookup price charged to your balance (the module's page in the dashboard shows the price); a lookup that finds nothing is not charged.
+Available on paid plans and pay as you go. Counts as one lookup against your plan's daily allowance (Max: unlimited). When the allowance is used up, the lookup can continue at a per-lookup price charged to your balance (the module's page in the dashboard shows the price); a lookup that finds nothing is not charged.
 
 ## Example request
 
@@ -168,11 +173,23 @@ echo json_encode($result, JSON_PRETTY_PRINT), PHP_EOL;
 <ResponseField name="timestamp" type="string">
   When the search ran (UTC), e.g. `Oct 6th 09:41`.
 </ResponseField>
+<ResponseField name="query_type" type="string">
+  The type the query was searched as (the `type` you sent, or the detected one).
+</ResponseField>
 <ResponseField name="results_count" type="number">
   Number of records in `breach_data`.
 </ResponseField>
 <ResponseField name="breach_data" type="array">
-  Matching records. The fields of a record depend on the breach it comes from (for example `email`, `username`, `password`, `hash`, `ip`, `name`, `phone`); `source_db` names the breach or index the record was found in.
+  Matching records. The fields of a record depend on the breach it comes from (for example `email`, `username`, `password`, `hash`, `ip`, `name`, `phone`); `source_db` names the breach the record was found in, when it is known.
+</ResponseField>
+<ResponseField name="password_seen" type="number">
+  Only for `type=password`: how often the password appears in known breaches.
+</ResponseField>
+<ResponseField name="sources" type="object">
+  One entry per source that searched, by id (`b1`, `b2`, ...): `status` (`completed` or `error`), `count`, and for an error a short `error` message. A source that failed doesn't fail the request.
+</ResponseField>
+<ResponseField name="deep_search" type="string">
+  The endpoint for the deep search job, `/api/breach/search`.
 </ResponseField>
 <ResponseField name="_meta" type="object">
   Your usage after this request.
@@ -192,6 +209,7 @@ echo json_encode($result, JSON_PRETTY_PRINT), PHP_EOL;
   "api": "OsintCat",
   "elapsed_ms": 1843.27,
   "timestamp": "Oct 6th 09:41",
+  "query_type": "email",
   "results_count": 1,
   "breach_data": [
     {
@@ -201,6 +219,11 @@ echo json_encode($result, JSON_PRETTY_PRINT), PHP_EOL;
       "source_db": "EXAMPLE_COM_2019"
     }
   ],
+  "sources": {
+    "b1": { "status": "completed", "count": 0 },
+    "b2": { "status": "completed", "count": 1 }
+  },
+  "deep_search": "/api/breach/search",
   "_meta": {
     "plan": "investigator",
     "lookups_left": 741

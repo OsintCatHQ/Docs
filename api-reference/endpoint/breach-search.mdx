@@ -1,0 +1,153 @@
+---
+title: 'Breach Search Job'
+api: 'POST https://www.osintcat.net/api/breach/search'
+description: 'The deep breach search: every source, run as a job you poll'
+---
+
+Starts a breach search across every source, including the deep search, which [Breach Lookup](/api-reference/endpoint/breach) leaves out because it can take a minute or longer. The answer comes at once with a job `id`; poll `GET /api/breach/search/{id}` until `status` is `completed`. Records appear while the sources answer.
+
+<Note>
+  Records for the same query may come from a cache for up to 72 hours. Every search is counted and charged; polling a job is free.
+</Note>
+
+## Body
+
+<ParamField body="query" type="string" required>
+  What to search for: an e-mail address, username, domain, IP address, name, phone number, hash or password.
+</ParamField>
+<ParamField body="type" type="string">
+  What `query` is: `email`, `username`, `password`, `name`, `domain`, `ip`, `hash` or `phone`. Detected from the query when left out.
+</ParamField>
+<ParamField body="deep" type="boolean" default="true">
+  `false` leaves the deep search out (then a `phone` search has no source and is refused).
+</ParamField>
+
+## Headers
+
+<ParamField header="X-API-KEY" type="string" required>
+  Your API key.
+</ParamField>
+
+## Usage
+
+Available on paid plans and pay as you go. Counts as one lookup against your plan's daily allowance (Max: unlimited). When the allowance is used up, the search can continue at a per-lookup price charged to your balance; a search that finds nothing, or where every source fails, is not charged.
+
+## Start a search
+
+<RequestExample>
+```bash cURL
+curl -X POST "https://www.osintcat.net/api/breach/search" \
+     -H "X-API-KEY: YOUR_API_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{"query": "user@example.com"}'
+```
+
+```python Python
+import time
+import requests
+
+headers = {"X-API-KEY": "YOUR_API_KEY"}
+job = requests.post("https://www.osintcat.net/api/breach/search",
+                    json={"query": "user@example.com"}, headers=headers, timeout=30).json()
+while True:
+    state = requests.get("https://www.osintcat.net" + job["poll"], headers=headers, timeout=30).json()
+    if state["status"] == "completed":
+        break
+    time.sleep(3)
+print(state["results_count"], state["breach_data"][:3])
+```
+
+```javascript JS & TS
+const headers = { "X-API-KEY": "YOUR_API_KEY", "Content-Type": "application/json" };
+const job = await (await fetch("https://www.osintcat.net/api/breach/search", {
+  method: "POST", headers, body: JSON.stringify({ query: "user@example.com" }),
+})).json();
+let state;
+do {
+  await new Promise((r) => setTimeout(r, 3000));
+  state = await (await fetch("https://www.osintcat.net" + job.poll, { headers })).json();
+} while (state.status !== "completed");
+console.log(state.results_count, state.breach_data.slice(0, 3));
+```
+</RequestExample>
+
+The answer, HTTP 202:
+
+<ResponseField name="id" type="string">
+  The job id.
+</ResponseField>
+<ResponseField name="status" type="string">
+  `running`.
+</ResponseField>
+<ResponseField name="query_type" type="string">
+  The type the query is searched as.
+</ResponseField>
+<ResponseField name="sources" type="array">
+  The ids of the sources searching (`b1`, `b2`, ...).
+</ResponseField>
+<ResponseField name="poll" type="string">
+  The path to poll, `/api/breach/search/{id}`.
+</ResponseField>
+<ResponseField name="_meta" type="object">
+  Your usage after this request (`plan`, `lookups_left`), as on [Breach Lookup](/api-reference/endpoint/breach).
+</ResponseField>
+
+## Poll a search
+
+`GET https://www.osintcat.net/api/breach/search/{id}` with the same `X-API-KEY`. Only the key that started a job can read it; a job is kept for 30 minutes. Polling is free; a few seconds between polls is plenty.
+
+<ResponseField name="id" type="string">
+  The job id.
+</ResponseField>
+<ResponseField name="status" type="string">
+  `running` while sources are still searching, then `completed`.
+</ResponseField>
+<ResponseField name="query_type" type="string">
+  The type the query is searched as.
+</ResponseField>
+<ResponseField name="results_count" type="number">
+  Number of records in `breach_data` so far.
+</ResponseField>
+<ResponseField name="breach_data" type="array">
+  Matching records from every source that has answered; `source_db` names the breach when it is known.
+</ResponseField>
+<ResponseField name="password_seen" type="number">
+  Only for `type=password`: how often the password appears in known breaches.
+</ResponseField>
+<ResponseField name="sources" type="object">
+  One entry per source by id: `status` (`pending`, `completed` or `error`), `count`, and for an error a short `error` message.
+</ResponseField>
+
+<ResponseExample>
+```json 202
+{
+  "id": "0f0e0d0c-0000-4000-8000-000000000001",
+  "status": "running",
+  "query_type": "email",
+  "sources": ["b1", "b2", "b3"],
+  "poll": "/api/breach/search/0f0e0d0c-0000-4000-8000-000000000001",
+  "_meta": { "plan": "investigator", "lookups_left": 741 }
+}
+```
+
+```json 200
+{
+  "id": "0f0e0d0c-0000-4000-8000-000000000001",
+  "status": "completed",
+  "query_type": "email",
+  "results_count": 1,
+  "breach_data": [
+    { "email": "user@example.com", "password": "hunter2", "source_db": "EXAMPLE_COM_2019" }
+  ],
+  "sources": {
+    "b1": { "status": "completed", "count": 0 },
+    "b2": { "status": "completed", "count": 1 },
+    "b3": { "status": "completed", "count": 0 }
+  }
+}
+```
+</ResponseExample>
+
+## Errors
+
+`403` with `upgrade_required` on the free plan; `400` with `invalid_query` or `invalid_type` for a missing query or an unknown type; `404` for a job that doesn't exist, expired, or was started by another key. See [Errors](/api-reference/introduction#errors) for the responses every endpoint can return.
