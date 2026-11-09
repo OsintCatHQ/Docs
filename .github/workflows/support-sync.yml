@@ -1,0 +1,43 @@
+# Keeps support/ (the help center's English articles, for Context7) in step with support.osintcat.net.
+# Runs when the app reports a publish (repository_dispatch "help-published"), by hand, and once a day as a safety net.
+# The script only touches support/; .mintignore keeps that folder off docs.osintcat.net.
+name: Sync help articles
+
+on:
+  repository_dispatch:
+    types: [help-published]
+  workflow_dispatch:
+  schedule:
+    - cron: '17 3 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: support-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy the published articles
+        env:
+          CONTENT_EXPORT_URL: https://www.osintcat.net/internal/content/export
+          CONTENT_EXPORT_TOKEN: ${{ secrets.CONTENT_EXPORT_TOKEN }}
+        run: python3 .github/scripts/sync_support.py
+
+      - name: Commit changes
+        run: |
+          git add -A support
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Sync help articles from support.osintcat.net"
+          git push
