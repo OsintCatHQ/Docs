@@ -9,7 +9,10 @@
     const widget = document.createElement('script');
     widget.src = 'https://context7.com/widget.js';
     widget.async = true;
-    widget.setAttribute('data-library', '/websites/osintcat_net');
+    // this repo's own library (the help articles and API docs), not the old osintcat.net crawl
+    widget.setAttribute('data-library', '/osintcathq/docs');
+    widget.setAttribute('data-color', '#7c3aed');
+    widget.setAttribute('data-placeholder', 'Ask about the OsintCat API…');
     document.head.appendChild(widget);
 })();
 
