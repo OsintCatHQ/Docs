@@ -21,7 +21,7 @@ Send your API key in the `X-API-KEY` header with every request:
 curl "https://www.osintcat.net/api/user" -H "X-API-KEY: YOUR_API_KEY"
 ```
 
-Create keys in your account under **[Settings → Developer](https://www.osintcat.net/account/developer)**. A key is shown once, when you create it: store it then. Keys start with `cat_`; your account's CatID is not an API key.
+Create keys in your account under **[Settings → Developer](https://www.osintcat.net/account/developer)**. A key is shown once, when you create it: store it then. Keys start with `oc_live_`; keys made before November 2026 start with `cat_` and keep working. Your account's CatID is not an API key.
 
 When you create a key you choose when it expires: in 7, 30 or 90 days, in a year, never, or on a date you pick. An expired key is refused like a revoked one (`403`); keys are not renewed, so create a new key and delete the old one. You can rename a key at any time.
 
@@ -45,6 +45,15 @@ A request outside the key's scopes is refused with `403 insufficient_scope`.
 ### Allowed IP addresses
 
 In Settings → Developer you can list the IP addresses your requests come from. With a list set, requests from any other address are refused with `403 IP_UNAUTHORIZED`. Leave the list empty to allow every address (for example for serverless platforms whose addresses change). A list holds up to 1 address on Researcher, 3 on Investigator and 10 on Max.
+
+### Company and member keys
+
+In a company on OsintCat there are two more kinds of key. Both start with `oc_live_` and are sent the same way.
+
+- **Company keys** belong to the company. Owners and admins make them under **Company settings → API keys**. Lookups made with them are paid from the company balance at Enterprise prices and reach every module an Enterprise seat opens. They keep working when the person who made them leaves. Each key can have a monthly spending limit, and the company's own monthly limit counts what its keys spend. A company key has no person behind it: it is not limited by anyone's plan or allowed IP addresses, and [Account](/api-reference/endpoint/user) is not available with it.
+- **Member keys** are made by a member in **Settings → Developer** with **Use for** set to the company. They run as that member inside the company, exactly like the member's lookups in the dashboard: from the member's seat or the company balance. They stop working when the member leaves the company or loses their seat.
+
+Every lookup answer says who pays in the `X-Billed-To` header: `personal` or `company`. Lookups that return `_meta` also carry it as `_meta.billed_to`.
 
 ## Plans and daily allowance
 
@@ -70,7 +79,7 @@ Each endpoint's page says how it is counted under **Usage**.
 
 ## Rate limits
 
-- **3 requests per second** per account, across all endpoints.
+- **3 requests per second** per account, across all endpoints. Each company key has its own 3 per second.
 - **5,000 requests per hour** per endpoint from one IP address.
 
 Over a limit, the request is refused with `429 rate_limit`; the `Retry-After` header says how many seconds to wait. Keep well inside the limits: repeatedly exceeding them can pause API access for your account for a while.
@@ -93,6 +102,9 @@ Responses are JSON. A successful lookup answers `200` even when nothing was foun
 | 403 | `IP_UNAUTHORIZED` | The request came from an address that is not on your allowed list. |
 | 403 | `ACCOUNT_REQUIRES_VERIFICATION` | Verify your account in the dashboard first. |
 | 403 | `account_frozen` | API access for the account is suspended; contact support. |
+| 403 | `ORG_INACTIVE` / `ORG_PAUSED` | Company and member keys: the company has no paid seats, or its subscription is unpaid. |
+| 403 | `ORG_BALANCE_EMPTY` | Company and member keys: the company balance does not cover the lookup. |
+| 403 | `ORG_LIMIT_ORG` / `ORG_LIMIT_KEY` | Company keys: the company's or the key's monthly spending limit is reached. |
 | 410 | `ENDPOINT_RETIRED` | The endpoint no longer exists. |
 | 429 | `LIMIT_REACHED` | The daily allowance is used up. |
 | 429 | `rate_limit` | Too many requests; see `Retry-After`. |
